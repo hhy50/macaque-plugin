@@ -46,6 +46,7 @@
     <actions>
         <group id="Main" description="Macaque" popup="true" text="Macaque">
             <add-to-group group-id="EditorPopupMenu" anchor="first" />
+            <add-to-group group-id="ToolsMenu" anchor="first" />
             <group id="ClassHotSwapGroup" class="six.eared.macaque.plugin.idea.hotswap.ClassHotSwapGroup"
                    description="ClassHotSwap" popup="true" text="Hot Swap" />
         </group>

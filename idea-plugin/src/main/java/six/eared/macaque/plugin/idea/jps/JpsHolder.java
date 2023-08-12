@@ -1,6 +1,5 @@
 package six.eared.macaque.plugin.idea.jps;
 
-import com.intellij.notification.*;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
@@ -9,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.http.interfaces.Jps;
-import six.eared.macaque.plugin.idea.notify.NotifyGroupName;
+import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.util.Collections;
@@ -29,8 +28,6 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
             new HashMap<>();
 
     private static final int MAX_PROCESS_NAME_LENGTH = 60;
-
-    private static final NotificationGroup NOTIFY_GROUP = NotificationGroupManager.getInstance().getNotificationGroup(NotifyGroupName.BALLOON);
 
     private Project project;
 
@@ -53,7 +50,6 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
                 if (settings == null) {
                     return;
                 }
-
                 jps = new Jps(settings.getState().getUrl());
                 JPS_CACHE.put(project, jps);
             }
@@ -72,14 +68,11 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
                                 return (ProcessItem) processItem;
                             })
                             .collect(Collectors.toList());
-
-                    Notification notification = NOTIFY_GROUP.createNotification("Refresh success", NotificationType.IDE_UPDATE);
-                    Notifications.Bus.notify(notification);
+                    Notify.success("Refresh success");
                 }
             });
         } catch (Exception e) {
-            Notification notification = NOTIFY_GROUP.createNotification(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage(), NotificationType.ERROR);
-            Notifications.Bus.notify(notification);
+            Notify.error(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
         }
     }
 
