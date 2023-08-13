@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
-import six.eared.macaque.plugin.idea.notify.Notify;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,6 @@ public class Settings implements PersistentStateComponent<Settings.State> {
     public static Settings getInstance(Project project) {
         Settings settings = project.getService(Settings.class);
         if (settings.getState() == null || !settings.getState().checkRequired()) {
-            Notify.error("Not configuration macaque server");
             return null;
         }
         return settings;

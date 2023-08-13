@@ -1,5 +1,6 @@
 package six.eared.macaque.plugin.idea.http.request;
 
+import com.intellij.openapi.util.io.StreamUtil;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -8,7 +9,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.lf5.util.StreamUtils;
 import six.eared.macaque.plugin.idea.common.GenericTyped;
 import six.eared.macaque.plugin.idea.http.decode.JsonDecoder;
 import six.eared.macaque.plugin.idea.http.decode.ResponseDecoder;
@@ -46,8 +46,7 @@ public abstract class BaseRequest<T> extends GenericTyped<T> implements Request<
             CloseableHttpResponse response = httpClient.execute(httpRequest);
             InputStream is = response.getEntity().getContent();
 
-            byte[] bytes = StreamUtils.getBytes(is);
-
+            byte[] bytes = StreamUtil.readBytes(is);
             T responseEntity = decoder()
                     .decode(bytes);
             if (responseEntity != null) {

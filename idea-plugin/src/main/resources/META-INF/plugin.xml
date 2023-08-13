@@ -29,16 +29,14 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <description><![CDATA[
-          Support Features:
-              <ol>
-                  <li>hot replace class from local to server</li>
-              </ul>
-      github: <a href="https://github.com/haiyanghan/six-eared-macaque">six-eared-macaque</a>
-      @Macaque Plugin
+            <p>适用于从本地热替换class到服务器</p>
+            github: <a href="https://github.com/haiyanghan/macaque-hot-swap">@Macaque Plugin</a>
+            <br />
+            qq群: 904726708
       ]]>
     </description>
 
-
+    <idea-version since-build="211" until-build="211.*"/>
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <depends>com.intellij.modules.platform</depends>

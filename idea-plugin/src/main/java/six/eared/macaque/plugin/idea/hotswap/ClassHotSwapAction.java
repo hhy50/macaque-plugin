@@ -3,15 +3,23 @@ package six.eared.macaque.plugin.idea.hotswap;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import org.apache.commons.lang.StringUtils;
+import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
 import six.eared.macaque.plugin.idea.http.interfaces.HotSwap;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
+
+import java.io.File;
 
 public class ClassHotSwapAction extends AnAction {
 
@@ -31,20 +39,23 @@ public class ClassHotSwapAction extends AnAction {
                 "This operation will replace the class already loaded in the target process",
                 "Warning", null);
         if (confirm == 0) {
-            final DataContext dataContext = event.getDataContext();
-            final Project project = event.getData(CommonDataKeys.PROJECT);
-
             // 获取右击的文件
             PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
             if (psiFile != null) {
+                final Module module = ModuleUtilCore.findModuleForFile(psiFile.getVirtualFile(),
+                        psiFile.getProject());
                 try {
                     // 优先 recompile, 失败再build整个项目
-                    builder.buildScope(dataContext, project)
-                            .onSuccess((result) -> {
-                                requestRedefine(psiFile);
+                    builder.buildScope(module)
+                            .onSuccess((compileResult) -> {
+                                if (compileResult.hasErrors()) {
+                                    compileFailHandler(module, psiFile);
+                                } else {
+                                    requestRedefine(getCompiledClassFile(module, psiFile), module.getProject());
+                                }
                             })
                             .onError((err) -> {
-                                expansionCompile(project, psiFile);
+                                compileFailHandler(module, psiFile);
                             });
                 } catch (Exception e) {
                     Notify.error(e.getMessage());
@@ -53,34 +64,38 @@ public class ClassHotSwapAction extends AnAction {
         }
     }
 
-    private void expansionCompile(Project project, PsiFile psiFile) {
-        builder.buildAll(project)
+    public void compileFailHandler(Module module, PsiFile psiFile) {
+        if (Messages.showYesNoCancelDialog(
+                "Incremental compilation module failed, do you want to build all module",
+                "Warning", null) == Messages.YES) {
+            expansionCompile(module, psiFile);
+        } else {
+            Notify.error("Compile project error");
+        }
+    }
+
+    private void expansionCompile(Module module, PsiFile psiFile) {
+        builder.buildAll(module.getProject())
                 .onSuccess((compileResult) -> {
                     if (compileResult.hasErrors()) {
                         Notify.error("Compile project error");
                         return;
                     }
-                    requestRedefine(psiFile);
+                    requestRedefine(getCompiledClassFile(module, psiFile), module.getProject());
                 }).onError((err) -> {
                     Notify.error(err.getMessage());
                 });
     }
 
-
-    public void requestRedefine(PsiFile psiFile) {
-        Project project = psiFile.getProject();
+    public void requestRedefine(File file, Project project) {
         Settings settings = Settings.getInstance(project);
-
         if (settings != null) {
             try {
-                // TODO IDEA 文件刷新有延迟
-                byte[] fileBytes = psiFile.getVirtualFile().contentsToByteArray();
-
                 HotSwap hotSwap = new HotSwap(settings.getState().getUrl());
                 hotSwap.setPid(pid);
-                hotSwap.setFileType("java");
-                hotSwap.setFileName(psiFile.getName());
-                hotSwap.setFileData(fileBytes);
+                hotSwap.setFileType("class");
+                hotSwap.setFileName(file.getName());
+                hotSwap.setFileData(FileUtil.loadFileBytes(file));
 
                 hotSwap.execute((response) -> {
                     if (response.isSuccess()) {
@@ -91,5 +106,27 @@ public class ClassHotSwapAction extends AnAction {
                 Notify.error(e.getMessage());
             }
         }
+    }
+
+    public File getCompiledClassFile(Module module, PsiFile psiFile) {
+        String moduleOutputPath = CompilerPaths.getModuleOutputPath(module, false);
+        if (StringUtils.isNotBlank(moduleOutputPath)) {
+            VirtualFile[] sourceRootUrls = ModuleRootManager.getInstance(module).getSourceRoots();
+            String javaFilePath = psiFile.getVirtualFile().getParent().getPath();
+
+            String sourceRoot = null;
+            for (VirtualFile root : sourceRootUrls) {
+                if (javaFilePath.startsWith(root.getPath())) {
+                    sourceRoot = root.getPath();
+                }
+            }
+            if (sourceRoot != null) {
+                String relative = javaFilePath.substring(sourceRoot.length());
+                String classFileName = psiFile.getName().split("\\.")[0] + ".class";
+                return new File(moduleOutputPath, relative + File.separator + classFileName);
+            }
+        }
+        Notify.error("class file '" + psiFile.getName() + "' not found");
+        return null;
     }
 }

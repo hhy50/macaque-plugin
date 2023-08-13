@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "six.eared.macaque.plugin"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
   mavenCentral()
@@ -15,8 +15,7 @@ repositories {
 intellij {
   version.set("2021.1")
   type.set("IU") // Target IDE Platform
-
-  plugins.set(listOf(/* Plugin Dependencies */))
+  plugins.set(listOf())
 }
 
 tasks {
@@ -34,5 +33,21 @@ tasks {
 
   publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir("src/java")
+    }
+    resources {
+      srcDir("src/resources")
+    }
+  }
+  test {
+    java {
+      srcDir("test/java")
+    }
   }
 }

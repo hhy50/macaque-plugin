@@ -48,6 +48,7 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
             if (jps == null) {
                 Settings settings = project.getService(Settings.class);
                 if (settings == null) {
+                    Notify.error("Not configuration macaque server");
                     return;
                 }
                 jps = new Jps(settings.getState().getUrl());
