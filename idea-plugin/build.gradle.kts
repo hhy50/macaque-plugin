@@ -34,6 +34,11 @@ tasks {
   publishPlugin {
     token.set(System.getenv("PUBLISH_TOKEN"))
   }
+  patchPluginXml {
+    version.set(project.version.toString())
+    sinceBuild.set("211")
+    untilBuild.set("231.*")
+  }
 }
 
 sourceSets {

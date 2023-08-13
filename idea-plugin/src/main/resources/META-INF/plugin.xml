@@ -36,7 +36,6 @@
       ]]>
     </description>
 
-    <idea-version since-build="211" until-build="211.*"/>
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <depends>com.intellij.modules.platform</depends>
