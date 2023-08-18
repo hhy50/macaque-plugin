@@ -16,13 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class RemoteApiImpl extends ServerApi{
+public class RemoteApiImpl extends ServerApi {
     private static final Map<Project, Jps> JPS_CACHE =
             new HashMap<>();
+
     /**
      * 替换包
      */
-    public  void doRedefine(Settings settings, File file, String pid){
+    public void doRedefine(Settings settings, File file, String pid) {
         if (settings != null) {
             try {
                 HotSwap hotSwap = new HotSwap(settings.getState().getUrl());
@@ -34,7 +35,7 @@ public class RemoteApiImpl extends ServerApi{
                 hotSwap.execute((response) -> {
                     if (response.isSuccess()) {
                         Notify.success("success");
-                    }else{
+                    } else {
                         Notify.error("remote hot-swap failed.");
                     }
                 });
@@ -72,16 +73,16 @@ public class RemoteApiImpl extends ServerApi{
                                 return (JpsHolder.ProcessItem) processItem;
                             })
                             .collect(Collectors.toList());
-                    if(proList!=null){
+                    if (proList != null) {
                         instance.getState().processList = proList;
                     }
                     Notify.success("Refresh success");
                 }
             });
-            if(StringUtils.isNotBlank(processFilter)&&instance.getState().processList!=null){
+            if (StringUtils.isNotBlank(processFilter) && instance.getState().processList != null) {
                 List<JpsHolder.ProcessItem> toRemove = new ArrayList<>();
-                for(JpsHolder.ProcessItem pi:instance.getState().processList){
-                    if(pi.process==null||!pi.process.toUpperCase().contains(processFilter.toUpperCase())){
+                for (JpsHolder.ProcessItem pi : instance.getState().processList) {
+                    if (pi.process == null || !pi.process.toUpperCase().contains(processFilter.toUpperCase())) {
                         toRemove.add(pi);
                     }
                 }

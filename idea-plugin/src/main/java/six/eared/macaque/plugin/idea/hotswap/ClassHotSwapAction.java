@@ -8,19 +8,21 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.task.ProjectTaskManager;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.concurrency.Promise;
 import six.eared.macaque.plugin.idea.api.ServerApi;
+import six.eared.macaque.plugin.idea.builder.CompileOptions;
 import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
-import six.eared.macaque.plugin.idea.http.interfaces.HotSwap;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
+import java.util.function.BiFunction;
 
 public class ClassHotSwapAction extends AnAction {
 
@@ -36,64 +38,43 @@ public class ClassHotSwapAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-        int confirm = Messages.showYesNoCancelDialog(
-                "This operation will replace the class already loaded in the target process",
-                "Warning", null);
-        if (confirm == 0) {
-            // 获取右击的文件
-            PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
-            if (psiFile != null) {
-                final Module module = ModuleUtilCore.findModuleForFile(psiFile.getVirtualFile(),
-                        psiFile.getProject());
-                try {
-                    // 优先 recompile, 失败再build整个项目
-                    builder.buildScope(module)
-                            .onSuccess((compileResult) -> {
-                                if (compileResult.hasErrors()) {
-                                    compileFailHandler(module, psiFile);
-                                } else {
-                                    requestRedefine(getCompiledClassFile(module, psiFile), module.getProject());
+
+        // 获取右击的文件
+        Project project = event.getProject();
+        PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
+        if (psiFile != null) {
+            try {
+                int option = Messages.showDialog("Whether to compile immediately?", "Choose Compile Option",
+                        CompileOptions.OPTIONS, CompileOptions.DEFAULT, null);
+
+                BiFunction<ProjectBuilder, PsiFile,
+                        Promise<ProjectTaskManager.Result>> handler = CompileOptions.getOption(option);
+                handler.apply(builder, psiFile)
+                        .onSuccess(result -> {
+                            if (!result.hasErrors()) {
+                                int confirm = Messages.showYesNoCancelDialog(
+                                        "This operation will replace the class already loaded in the target process",
+                                        "Warning", null);
+                                if (confirm == 0) {
+                                    Settings settings = Settings.getInstance(project);
+                                    ServerApi.getAPI(project).doRedefine(settings, getCompiledClassFile(psiFile), pid);
                                 }
-                            })
-                            .onError((err) -> {
-                                compileFailHandler(module, psiFile);
-                            });
-                } catch (Exception e) {
-                    Notify.error(e.getMessage());
-                }
+                            }
+                        })
+                        .onError(error -> {
+                            Notify.error(error.getMessage());
+                        });
+            } catch (Exception e) {
+                Notify.error(e.getMessage());
             }
         }
+
     }
 
-    public void compileFailHandler(Module module, PsiFile psiFile) {
-        if (Messages.showYesNoCancelDialog(
-                "Incremental compilation module failed, do you want to build all module",
-                "Warning", null) == Messages.YES) {
-            expansionCompile(module, psiFile);
-        } else {
-            Notify.error("Compile project error");
-        }
-    }
+    public File getCompiledClassFile(PsiFile psiFile) {
+        final Module module = ModuleUtilCore.findModuleForFile(psiFile.getVirtualFile(),
+                psiFile.getProject());
 
-    private void expansionCompile(Module module, PsiFile psiFile) {
-        builder.buildAll(module.getProject())
-                .onSuccess((compileResult) -> {
-                    if (compileResult.hasErrors()) {
-                        Notify.error("Compile project error");
-                        return;
-                    }
-                    requestRedefine(getCompiledClassFile(module, psiFile), module.getProject());
-                }).onError((err) -> {
-                    Notify.error(err.getMessage());
-                });
-    }
-
-    public void requestRedefine(File file, Project project) {
-        Settings settings = Settings.getInstance(project);
-        ServerApi.getAPI(project).doRedefine(settings,file,pid);
-    }
-
-    public File getCompiledClassFile(Module module, PsiFile psiFile) {
         String moduleOutputPath = CompilerPaths.getModuleOutputPath(module, false);
         if (StringUtils.isNotBlank(moduleOutputPath)) {
             VirtualFile[] sourceRootUrls = ModuleRootManager.getInstance(module).getSourceRoots();
@@ -111,7 +92,6 @@ public class ClassHotSwapAction extends AnAction {
                 return new File(moduleOutputPath, relative + File.separator + classFileName);
             }
         }
-        Notify.error("class file '" + psiFile.getName() + "' not found");
         return null;
     }
 }

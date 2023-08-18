@@ -4,11 +4,9 @@ package six.eared.macaque.plugin.idea.ui;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBRadioButton;
-import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import javax.swing.*;
-
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 

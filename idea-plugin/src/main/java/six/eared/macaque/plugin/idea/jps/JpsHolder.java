@@ -3,20 +3,15 @@ package six.eared.macaque.plugin.idea.jps;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.api.ServerApi;
-import six.eared.macaque.plugin.idea.http.interfaces.Jps;
-import six.eared.macaque.plugin.idea.notify.Notify;
-import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @State(name = PluginInfo.JPS_PROCESS_ID)

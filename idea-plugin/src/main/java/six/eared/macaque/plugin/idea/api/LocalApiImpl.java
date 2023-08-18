@@ -1,7 +1,7 @@
 package six.eared.macaque.plugin.idea.api;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.util.PathUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.client.attach.Attach;
 import six.eared.macaque.client.attach.DefaultAttachFactory;
@@ -13,64 +13,74 @@ import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class LocalApiImpl extends ServerApi{
+public class LocalApiImpl extends ServerApi {
+    private static String AGENT_PATH;
+
     private final DefaultAttachFactory defaultAttachFactory = new DefaultAttachFactory();
-    private String findLibPath() {
-        final Path path = Paths.get(PathUtil.getJarPathForClass(this.getClass()));
-        if (path.endsWith("classes")) return path.resolve("../lib")
-                .normalize()
-                .toString();
-        return Paths.get(PathUtil.getJarPathForClass(getClass()))
-                .getParent()
-                .toString();
+
+    static {
+        URL resource = LocalApiImpl.class.getClassLoader().getResource("lib/macaque-agent.jar");
+        if (resource != null) {
+            try {
+                String tmp = System.getProperty("java.io.tmpdir") + File.separator + "macaque-agent.jar";
+                FileUtil.copy(resource.openStream(), new FileOutputStream(tmp));
+                AGENT_PATH = tmp;
+            } catch (IOException e) {
+                Notify.error(e.getMessage());
+            }
+        }
+        if (AGENT_PATH == null) {
+            // TODO 从网络下载
+            AGENT_PATH = "";
+        }
     }
+
     protected boolean attach(Integer pid) {
         Attach runtimeAttach
                 = this.defaultAttachFactory.createRuntimeAttach(String.valueOf(pid));
-
         Integer agentPort = PortNumberGenerator.getPort(pid);
-        Notify.error("agentPort:"+agentPort);
-        String property = "port="+agentPort+",debug=true";
-        String libPath = findLibPath();
-        Notify.error("libPath:"+libPath+File.separator+"macaque-agent-1.0.jar");
-        return runtimeAttach.attach(libPath+File.separator+"macaque-agent-1.0.jar", property);
+        String property = "port=" + agentPort + ",debug=true";
+        return runtimeAttach.attach(AGENT_PATH, property);
     }
+
     /**
      * 替换包
      */
-    public void doRedefine(Settings settings, File file, String pid){
-        if(attach(Integer.parseInt(pid))){
-            Notify.error("attach succeed");
-        }else{
+    public void doRedefine(Settings settings, File file, String pid) {
+        if (attach(Integer.parseInt(pid))) {
+            Notify.info(String.format("attach '%s' succeed", pid));
+        } else {
             Notify.error("attach failed");
         }
     }
+
     @Override
     public void setJPSList(Project project, JpsHolder instance) {
-        try{
+        try {
             Settings settings = project.getService(Settings.class);
             String processFilter = null;
-            if(settings!=null){
+            if (settings != null) {
                 processFilter = settings.getState().processFilter;
             }
             JavaProcessHolder.refresh();
             List<Map<String, String>> javaProcess = new ArrayList<>();
             List<Pair<String, String>> pairs = JavaProcessHolder.getJavaProcess();
-            if(pairs!=null){
-                for(six.eared.macaque.common.util.Pair<String, String> item:pairs){
+            if (pairs != null) {
+                for (six.eared.macaque.common.util.Pair<String, String> item : pairs) {
                     Map<String, String> map = new HashMap<>();
                     map.put("pid", item.getFirst());
                     map.put("process", item.getSecond());
-                    if(StringUtils.isNotBlank(processFilter)&&item.getSecond()!=null){
-                        if(!item.getSecond().toUpperCase().contains(processFilter.toUpperCase())){
+                    if (StringUtils.isNotBlank(processFilter) && item.getSecond() != null) {
+                        if (!item.getSecond().toUpperCase().contains(processFilter.toUpperCase())) {
                             continue;
                         }
                     }
@@ -89,10 +99,10 @@ public class LocalApiImpl extends ServerApi{
                         return (JpsHolder.ProcessItem) processItem;
                     })
                     .collect(Collectors.toList());
-            if(proList!=null){
+            if (proList != null) {
                 instance.getState().processList = proList;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             Notify.error(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
         }
     }

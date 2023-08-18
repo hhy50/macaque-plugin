@@ -16,9 +16,10 @@ public abstract class ServerApi {
      * 0 远程模式
      * 1 本地模式
      */
-    public static  int localMode = -1;
-    public static ServerApi getAPI(Project project){
-        if(localMode==-1){
+    public static int localMode = -1;
+
+    public static ServerApi getAPI(Project project) {
+        if (localMode == -1) {
             //初始化
             Settings settings = project.getService(Settings.class);
             if (settings == null) {
@@ -27,17 +28,19 @@ public abstract class ServerApi {
             }
             localMode = settings.getState().mode;
         }
-        if(localMode==0){
+        if (localMode == 0) {
             return localApi;
-        }else{
-            if(remoteApi==null){
+        } else {
+            if (remoteApi == null) {
                 remoteApi = new RemoteApiImpl();
             }
             return remoteApi;
         }
     }
-    public  static ServerApi localApi = new LocalApiImpl();
-    public  static ServerApi remoteApi = null;
+
+    public static ServerApi localApi = new LocalApiImpl();
+    public static ServerApi remoteApi = null;
+
     /**
      * 替换包
      */
@@ -45,6 +48,7 @@ public abstract class ServerApi {
 
     /**
      * 获取jps进程信息
+     *
      * @param project
      * @param instance
      */

@@ -7,6 +7,7 @@ group = "six.eared.macaque.plugin"
 version = "1.0"
 
 repositories {
+  mavenLocal()
   mavenCentral()
 }
 
