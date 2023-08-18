@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
+import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.thread.Executors;
 import six.eared.macaque.plugin.idea.ui.SettingsUI;
@@ -59,6 +60,8 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     @Override
     public void apply() {
         Settings.cover(project, settingsUI.getPanelConfig());
+        ServerApi.localMode = -1;
+        ServerApi.remoteApi = null;
         Executors.submit(() -> JpsHolder.refresh(project));
     }
 

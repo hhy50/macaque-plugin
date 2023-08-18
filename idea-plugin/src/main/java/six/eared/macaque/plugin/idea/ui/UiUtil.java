@@ -3,6 +3,7 @@ package six.eared.macaque.plugin.idea.ui;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBRadioButton;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -99,5 +100,30 @@ public class UiUtil {
                 .insets("0");
 
         return new MigLayout(lc);
+    }
+
+    /**
+     * 添加单选框-模式选择
+     * @param container
+     * @return
+     */
+    public static JBRadioButton[] addModeChangeRadio(JPanel container){
+        ButtonGroup group = new ButtonGroup();
+
+        JBRadioButton localMode = new JBRadioButton();
+        localMode.setText("Local");
+
+        JBRadioButton remoteMode = new JBRadioButton();
+        remoteMode.setText("Remote");
+        group.add(localMode);
+        group.add(remoteMode);
+
+        container.add(new JLabel("Plugin Mode"));
+        container.add(localMode);
+        container.add(remoteMode, fillX());
+        container.add(new JLabel(), new CC().wrap());
+        localMode.setSelected(true);
+
+        return new JBRadioButton []{localMode,remoteMode};
     }
 }

@@ -12,6 +12,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.apache.commons.lang.StringUtils;
+import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
@@ -89,23 +90,7 @@ public class ClassHotSwapAction extends AnAction {
 
     public void requestRedefine(File file, Project project) {
         Settings settings = Settings.getInstance(project);
-        if (settings != null) {
-            try {
-                HotSwap hotSwap = new HotSwap(settings.getState().getUrl());
-                hotSwap.setPid(pid);
-                hotSwap.setFileType("class");
-                hotSwap.setFileName(file.getName());
-                hotSwap.setFileData(FileUtil.loadFileBytes(file));
-
-                hotSwap.execute((response) -> {
-                    if (response.isSuccess()) {
-                        Notify.success("success");
-                    }
-                });
-            } catch (Exception e) {
-                Notify.error(e.getMessage());
-            }
-        }
+        ServerApi.getAPI(project).doRedefine(settings,file,pid);
     }
 
     public File getCompiledClassFile(Module module, PsiFile psiFile) {

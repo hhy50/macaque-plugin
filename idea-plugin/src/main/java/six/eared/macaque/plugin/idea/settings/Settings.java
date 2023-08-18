@@ -58,7 +58,13 @@ public class Settings implements PersistentStateComponent<Settings.State> {
         public String macaqueServerPort;
 
         public boolean compatibilityMode;
-
+        /**
+         * 模式
+         * 0 本地模式
+         * 1 远程模式
+         */
+        public int mode;
+        public String processFilter;
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -66,12 +72,15 @@ public class Settings implements PersistentStateComponent<Settings.State> {
             State state = (State) o;
             return Objects.equals(macaqueServerHost, state.macaqueServerHost)
                     && Objects.equals(macaqueServerPort, state.macaqueServerPort)
-                    && compatibilityMode == state.compatibilityMode;
+                    && compatibilityMode == state.compatibilityMode
+                    && mode == state.mode
+                    && processFilter == state.processFilter
+                    ;
         }
 
         public String getUrl() {
             String scheme = "";
-            if (!macaqueServerHost.startsWith("http")) {
+            if (macaqueServerHost!=null&&!macaqueServerHost.startsWith("http")) {
                 scheme = "http://";
             }
             return scheme + macaqueServerHost + ":" + macaqueServerPort;
@@ -79,7 +88,7 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(macaqueServerHost, macaqueServerPort, compatibilityMode);
+            return Objects.hash(macaqueServerHost, macaqueServerPort, processFilter,compatibilityMode,mode);
         }
 
         @Override
@@ -88,6 +97,8 @@ public class Settings implements PersistentStateComponent<Settings.State> {
                     "macaqueServerHost='" + macaqueServerHost + '\'' +
                     ", macaqueServerPort='" + macaqueServerPort + '\'' +
                     ", compatibilityMode=" + compatibilityMode +
+                    ", processFilter=" + processFilter +
+                    ", mode=" + mode +
                     '}';
         }
     }

@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
+import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.http.interfaces.Jps;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
@@ -24,10 +25,8 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
     private static final Map<Project, JpsHolder.State> HOLDER =
             new HashMap<>();
 
-    private static final Map<Project, Jps> JPS_CACHE =
-            new HashMap<>();
 
-    private static final int MAX_PROCESS_NAME_LENGTH = 60;
+    public static final int MAX_PROCESS_NAME_LENGTH = 60;
 
     private Project project;
 
@@ -43,38 +42,7 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
         JpsHolder instance = getInstance(project);
         instance.getState().processList = Collections.EMPTY_LIST;
 
-        try {
-            Jps jps = JPS_CACHE.get(project);
-            if (jps == null) {
-                Settings settings = project.getService(Settings.class);
-                if (settings == null) {
-                    Notify.error("Not configuration macaque server");
-                    return;
-                }
-                jps = new Jps(settings.getState().getUrl());
-                JPS_CACHE.put(project, jps);
-            }
-
-            jps.execute((response) -> {
-                if (response.isSuccess()) {
-                    instance.getState().processList = response.getData().stream()
-                            .map(item -> {
-                                String process = item.getProcess();
-
-                                ProcessItem processItem = new ProcessItem();
-                                processItem.pid = item.getPid();
-                                processItem.process = StringUtils.isBlank(process)
-                                        ? "Unknown"
-                                        : process.length() > MAX_PROCESS_NAME_LENGTH ? process.substring(0, MAX_PROCESS_NAME_LENGTH) : process;
-                                return (ProcessItem) processItem;
-                            })
-                            .collect(Collectors.toList());
-                    Notify.success("Refresh success");
-                }
-            });
-        } catch (Exception e) {
-            Notify.error(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
-        }
+        ServerApi.getAPI(project).setJPSList(project,instance);
     }
 
     @Override

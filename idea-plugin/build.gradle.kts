@@ -10,6 +10,11 @@ repositories {
   mavenCentral()
 }
 
+dependencies {
+  implementation("six.eared.macaque:macaque-client:1.0")
+  implementation("six.eared.macaque:macaque-common:1.0")
+}
+
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
