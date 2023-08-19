@@ -8,7 +8,7 @@ import six.eared.macaque.client.common.PortNumberGenerator;
 import six.eared.macaque.client.process.JavaProcessHolder;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
-import six.eared.macaque.plugin.idea.settings.Settings;
+import six.eared.macaque.plugin.idea.settings.ServerConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LocalApiImpl extends ServerApi {
-
-    private static final LocalApiImpl INSTANCE = new LocalApiImpl();
 
     private static String AGENT_PATH;
 
@@ -43,12 +41,8 @@ public class LocalApiImpl extends ServerApi {
         }
     }
 
-    private LocalApiImpl() {
-        super(null, null);
-    }
-
-    public static LocalApiImpl getInstance() {
-        return INSTANCE;
+    public LocalApiImpl(ServerConfig serverConfig) {
+        super(null, serverConfig);
     }
 
     protected boolean attach(Integer pid) {
@@ -62,7 +56,7 @@ public class LocalApiImpl extends ServerApi {
     /**
      * 替换包
      */
-    public void doRedefine(Settings settings, File file, String pid) {
+    public void doRedefine(File file, String pid) {
         if (attach(Integer.parseInt(pid))) {
             Notify.info(String.format("attach '%s' succeed", pid));
         } else {

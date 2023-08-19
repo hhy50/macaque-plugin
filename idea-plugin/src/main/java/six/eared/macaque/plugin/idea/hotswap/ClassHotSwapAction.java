@@ -13,28 +13,27 @@ import com.intellij.psi.PsiFile;
 import com.intellij.task.ProjectTaskManager;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.concurrency.Promise;
-import six.eared.macaque.plugin.idea.api.ServerApiFactory;
+import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.builder.CompileOptions;
 import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
 import six.eared.macaque.plugin.idea.notify.Notify;
-import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.util.function.BiFunction;
 
 public class ClassHotSwapAction extends AnAction {
 
-    private String serverUnique;
+    private ServerApi serverApi;
 
     private String pid;
 
     private final ProjectBuilder builder = new NomalProjectBuilder();
 
-    public ClassHotSwapAction(String serverUnique, String pid, String processName) {
+    public ClassHotSwapAction(ServerApi serverApi, String pid, String processName) {
         super(String.format("%s | %s", pid, processName));
-        this.serverUnique = serverUnique;
+        this.serverApi = serverApi;
         this.pid = pid;
     }
 
@@ -57,8 +56,7 @@ public class ClassHotSwapAction extends AnAction {
                                         "This operation will replace the class already loaded in the target process",
                                         "Warning", null);
                                 if (confirm == 0) {
-                                    Settings settings = Settings.getInstance(project);
-                                    ServerApiFactory.getAPI(project, settings.getState().getServerConfig(serverUnique)).doRedefine(settings, getCompiledClassFile(psiFile), pid);
+                                    serverApi.doRedefine(getCompiledClassFile(psiFile), pid);
                                 }
                             }
                         })

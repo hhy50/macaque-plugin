@@ -3,7 +3,6 @@ package six.eared.macaque.plugin.idea.api;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
-import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.util.List;
@@ -27,8 +26,8 @@ public abstract class ServerApi {
         return processList.stream()
                 .filter(item -> {
                     if (StringUtils.isNotBlank(serverConfig.pattern)) {
-                        return item.process.matches(serverConfig.pattern)
-                                || item.process.contains(serverConfig.pattern);
+                        // TODO 通配符解析
+                        return item.process.contains(serverConfig.pattern);
                     }
                     return true;
                 }).collect(Collectors.toList());
@@ -37,7 +36,7 @@ public abstract class ServerApi {
     /**
      * 替换包
      */
-    public abstract void doRedefine(Settings settings, File file, String pid);
+    public abstract void doRedefine(File file, String pid);
 
     /**
      * 获取jps进程信息

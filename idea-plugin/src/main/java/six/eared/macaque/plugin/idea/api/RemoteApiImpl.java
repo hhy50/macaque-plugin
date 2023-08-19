@@ -9,7 +9,6 @@ import six.eared.macaque.plugin.idea.http.response.JpsResponse;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
-import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.util.Collections;
@@ -28,25 +27,23 @@ public class RemoteApiImpl extends ServerApi {
     /**
      * 替换包
      */
-    public void doRedefine(Settings settings, File file, String pid) {
-        if (settings != null) {
-            try {
-                HotSwap hotSwap = new HotSwap(serverConfig.getUrl());
-                hotSwap.setPid(pid);
-                hotSwap.setFileType("class");
-                hotSwap.setFileName(file.getName());
-                hotSwap.setFileData(FileUtil.loadFileBytes(file));
+    public void doRedefine(File file, String pid) {
+        try {
+            HotSwap hotSwap = new HotSwap(serverConfig.getUrl());
+            hotSwap.setPid(pid);
+            hotSwap.setFileType("class");
+            hotSwap.setFileName(file.getName());
+            hotSwap.setFileData(FileUtil.loadFileBytes(file));
 
-                hotSwap.execute((response) -> {
-                    if (response.isSuccess()) {
-                        Notify.success("success");
-                    } else {
-                        Notify.error("remote hot-swap failed.");
-                    }
-                });
-            } catch (Exception e) {
-                Notify.error(e.getMessage());
-            }
+            hotSwap.execute((response) -> {
+                if (response.isSuccess()) {
+                    Notify.success("success");
+                } else {
+                    Notify.error("remote hot-swap failed.");
+                }
+            });
+        } catch (Exception e) {
+            Notify.error(e.getMessage());
         }
     }
 

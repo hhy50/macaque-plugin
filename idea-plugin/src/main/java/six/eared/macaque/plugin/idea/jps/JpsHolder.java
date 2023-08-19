@@ -10,6 +10,7 @@ import six.eared.macaque.plugin.idea.api.ServerApiFactory;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
+import java.io.Serializable;
 import java.util.*;
 
 @State(name = PluginInfo.JPS_PROCESS_ID)
@@ -38,7 +39,7 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
             List<ProcessGroup> processGroups = new ArrayList<>();
             for (ServerConfig server : servers) {
                 ServerApi api = ServerApiFactory.getAPI(project, server);
-                processGroups.add(new ProcessGroup(server.unique, api.getJavaProcess()));
+                processGroups.add(new ProcessGroup(server.unique, server.serverName, api.getJavaProcess()));
             }
             JpsHolder instance = getInstance(project);
             instance.getState().processGroups = processGroups;
@@ -60,7 +61,7 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
         HOLDER.put(this.project, state);
     }
 
-    public static class State {
+    public static class State implements Serializable {
 
         public List<ProcessGroup> processGroups = Collections.EMPTY_LIST;
     }
@@ -69,14 +70,17 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
 
         public String serverUnique;
 
+        public String serverName;
+
         public List<ServerApi.ProcessItem> processList;
 
         public ProcessGroup() {
 
         }
 
-        public ProcessGroup(String unique, List<ServerApi.ProcessItem> javaProcess) {
+        public ProcessGroup(String unique, String serverName, List<ServerApi.ProcessItem> javaProcess) {
             this.serverUnique = unique;
+            this.serverName = serverName;
             this.processList = javaProcess;
         }
     }
