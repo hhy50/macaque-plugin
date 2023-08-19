@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
-import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.thread.Executors;
 import six.eared.macaque.plugin.idea.ui.SettingsUI;
@@ -22,13 +21,10 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     private SettingsUI settingsUI;
 
     public MacaqueServerSetting(@NotNull Project project) {
-        this.project = project;
-        this.settingsUI = new SettingsUI();
-
         Settings settings = Settings.getInstance(project);
-        if (settings != null) {
-            this.settingsUI.initValue(settings.getState());
-        }
+
+        this.project = project;
+        this.settingsUI = new SettingsUI(settings);
     }
 
     @Override
@@ -53,16 +49,15 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
         if (settings != null) {
             return !settings.getState().equals(panelConfig);
         }
-
         return panelConfig != null;
     }
 
     @Override
     public void apply() {
-        Settings.cover(project, settingsUI.getPanelConfig());
-        ServerApi.localMode = -1;
-        ServerApi.remoteApi = null;
-        Executors.submit(() -> JpsHolder.refresh(project));
+        if (isModified()) {
+            Settings.cover(project, settingsUI.getPanelConfig());
+            Executors.submit(() -> JpsHolder.refresh(project));
+        }
     }
 
     @Override

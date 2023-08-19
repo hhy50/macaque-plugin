@@ -57,6 +57,35 @@ public abstract class BaseRequest<T> extends GenericTyped<T> implements Request<
         }
     }
 
+    public T execute() throws Exception {
+        HttpRequestBase httpRequest = request();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(1000)
+                .setConnectionRequestTimeout(1000)
+                .build();
+        httpRequest.setConfig(requestConfig);
+
+        if (httpRequest instanceof HttpPost) {
+            ((HttpPost) httpRequest).setEntity(entityBuild()
+                    .build());
+        }
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            CloseableHttpResponse response = httpClient.execute(httpRequest);
+            InputStream is = response.getEntity().getContent();
+
+            byte[] bytes = StreamUtil.readBytes(is);
+            T responseEntity = decoder()
+                    .decode(bytes);
+            if (responseEntity != null) {
+                return responseEntity;
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+        return null;
+    }
+
     protected abstract HttpRequestBase request();
 
     protected MultipartEntityBuilder entityBuild() {

@@ -3,13 +3,14 @@ package six.eared.macaque.plugin.idea.settings;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @State(name = PluginInfo.SERVER_CONFIG_ID)
 public class Settings implements PersistentStateComponent<Settings.State> {
@@ -51,55 +52,52 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
     public static class State implements StateCheck {
 
-        @Required
-        public String macaqueServerHost;
+        public List<ServerConfig> servers = Collections.EMPTY_LIST;
 
-        @Required
-        public String macaqueServerPort;
+        public BetaConfig betaConfig = BetaConfig.EMPTY;
 
-        public boolean compatibilityMode;
-        /**
-         * 模式
-         * 0 本地模式
-         * 1 远程模式
-         */
-        public int mode;
-        public String processFilter;
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            State state = (State) o;
-            return Objects.equals(macaqueServerHost, state.macaqueServerHost)
-                    && Objects.equals(macaqueServerPort, state.macaqueServerPort)
-                    && compatibilityMode == state.compatibilityMode
-                    && mode == state.mode
-                    && processFilter == state.processFilter
-                    ;
+
+            State to = (State) o;
+            return Objects.equals(this.betaConfig, to.betaConfig)
+                    && compareServerConfig(to.servers);
         }
 
-        public String getUrl() {
-            String scheme = "";
-            if (macaqueServerHost!=null&&!macaqueServerHost.startsWith("http")) {
-                scheme = "http://";
+        public ServerConfig getServerConfig(String serverUnique) {
+            for (ServerConfig server : servers) {
+                if (server.unique.equals(serverUnique)) {
+                    return server;
+                }
             }
-            return scheme + macaqueServerHost + ":" + macaqueServerPort;
+            return null;
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(macaqueServerHost, macaqueServerPort, processFilter,compatibilityMode,mode);
-        }
+        public boolean compareServerConfig(@NotNull List<ServerConfig> to) {
+            if (this.servers == null) {
+                return false;
+            }
 
-        @Override
-        public String toString() {
-            return "Settings{" +
-                    "macaqueServerHost='" + macaqueServerHost + '\'' +
-                    ", macaqueServerPort='" + macaqueServerPort + '\'' +
-                    ", compatibilityMode=" + compatibilityMode +
-                    ", processFilter=" + processFilter +
-                    ", mode=" + mode +
-                    '}';
+            if (servers.size() != to.size()) {
+                return false;
+            }
+
+            if (CollectionUtils.isNotEmpty(CollectionUtils.removeAll(this.servers, to))) {
+                return false;
+            }
+
+            Map<String, ServerConfig> toSererMap = to.stream()
+                    .collect(Collectors.toMap(ServerConfig::getUnique, Function.identity()));
+
+            for (ServerConfig server : this.servers) {
+                ServerConfig serverConfig = toSererMap.get(server.getUnique());
+                if (!serverConfig.equals(server)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

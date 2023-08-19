@@ -1,13 +1,11 @@
 package six.eared.macaque.plugin.idea.api;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.client.attach.Attach;
 import six.eared.macaque.client.attach.DefaultAttachFactory;
 import six.eared.macaque.client.common.PortNumberGenerator;
 import six.eared.macaque.client.process.JavaProcessHolder;
-import six.eared.macaque.common.util.Pair;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.Settings;
@@ -16,13 +14,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LocalApiImpl extends ServerApi {
+
+    private static final LocalApiImpl INSTANCE = new LocalApiImpl();
+
     private static String AGENT_PATH;
 
     private final DefaultAttachFactory defaultAttachFactory = new DefaultAttachFactory();
@@ -42,6 +41,14 @@ public class LocalApiImpl extends ServerApi {
             // TODO 从网络下载
             AGENT_PATH = "";
         }
+    }
+
+    private LocalApiImpl() {
+        super(null, null);
+    }
+
+    public static LocalApiImpl getInstance() {
+        return INSTANCE;
     }
 
     protected boolean attach(Integer pid) {
@@ -64,46 +71,25 @@ public class LocalApiImpl extends ServerApi {
     }
 
     @Override
-    public void setJPSList(Project project, JpsHolder instance) {
+    public List<ProcessItem> getJavaProcess() {
+        JavaProcessHolder.refresh();
         try {
-            Settings settings = project.getService(Settings.class);
-            String processFilter = null;
-            if (settings != null) {
-                processFilter = settings.getState().processFilter;
-            }
-            JavaProcessHolder.refresh();
-            List<Map<String, String>> javaProcess = new ArrayList<>();
-            List<Pair<String, String>> pairs = JavaProcessHolder.getJavaProcess();
-            if (pairs != null) {
-                for (six.eared.macaque.common.util.Pair<String, String> item : pairs) {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("pid", item.getFirst());
-                    map.put("process", item.getSecond());
-                    if (StringUtils.isNotBlank(processFilter) && item.getSecond() != null) {
-                        if (!item.getSecond().toUpperCase().contains(processFilter.toUpperCase())) {
-                            continue;
-                        }
-                    }
-                    javaProcess.add(map);
-                }
-            }
-            List proList = javaProcess.stream()
+            List<ProcessItem> processList = JavaProcessHolder.getJavaProcess().stream()
                     .map(item -> {
-                        String process = item.get("process");
+                        String process = item.getSecond();
 
-                        JpsHolder.ProcessItem processItem = new JpsHolder.ProcessItem();
-                        processItem.pid = item.get("pid");
+                        ProcessItem processItem = new ProcessItem();
+                        processItem.pid = item.getFirst();
                         processItem.process = StringUtils.isBlank(process)
                                 ? "Unknown"
                                 : process.length() > JpsHolder.MAX_PROCESS_NAME_LENGTH ? process.substring(0, JpsHolder.MAX_PROCESS_NAME_LENGTH) : process;
-                        return (JpsHolder.ProcessItem) processItem;
+                        return processItem;
                     })
                     .collect(Collectors.toList());
-            if (proList != null) {
-                instance.getState().processList = proList;
-            }
+            return filterProcess(processList);
         } catch (Exception e) {
             Notify.error(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
         }
+        return Collections.EMPTY_LIST;
     }
 }

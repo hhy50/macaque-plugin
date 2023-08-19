@@ -13,7 +13,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.task.ProjectTaskManager;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.concurrency.Promise;
-import six.eared.macaque.plugin.idea.api.ServerApi;
+import six.eared.macaque.plugin.idea.api.ServerApiFactory;
 import six.eared.macaque.plugin.idea.builder.CompileOptions;
 import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
@@ -26,19 +26,20 @@ import java.util.function.BiFunction;
 
 public class ClassHotSwapAction extends AnAction {
 
+    private String serverUnique;
+
     private String pid;
 
     private final ProjectBuilder builder = new NomalProjectBuilder();
 
-    public ClassHotSwapAction(String pid, String processName) {
+    public ClassHotSwapAction(String serverUnique, String pid, String processName) {
         super(String.format("%s | %s", pid, processName));
-
+        this.serverUnique = serverUnique;
         this.pid = pid;
     }
 
     @Override
     public void actionPerformed(AnActionEvent event) {
-
         // 获取右击的文件
         Project project = event.getProject();
         PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
@@ -57,7 +58,7 @@ public class ClassHotSwapAction extends AnAction {
                                         "Warning", null);
                                 if (confirm == 0) {
                                     Settings settings = Settings.getInstance(project);
-                                    ServerApi.getAPI(project).doRedefine(settings, getCompiledClassFile(psiFile), pid);
+                                    ServerApiFactory.getAPI(project, settings.getState().getServerConfig(serverUnique)).doRedefine(settings, getCompiledClassFile(psiFile), pid);
                                 }
                             }
                         })

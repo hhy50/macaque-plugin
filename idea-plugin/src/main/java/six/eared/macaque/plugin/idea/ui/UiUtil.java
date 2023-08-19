@@ -1,5 +1,6 @@
 package six.eared.macaque.plugin.idea.ui;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
@@ -24,6 +25,15 @@ public class UiUtil {
         JPanel inner = new JPanel(createMigLayout(4));
         custom.accept(inner);
 
+        addGroup(container, groupName, inner, false);
+    }
+
+    /**
+     * addGroup
+     *
+     * @param container
+     */
+    public static void addGroup(JPanel container, String groupName, JPanel inner, boolean wrap) {
         JPanel group = new JPanel(createMigLayout());
         group.setBorder(IdeBorderFactory.createTitledBorder(groupName));
         group.add(inner, fillX());
@@ -31,26 +41,10 @@ public class UiUtil {
         container.add(group, fillX());
     }
 
-    public static JPanel buildGroup(String groupName, Consumer<JPanel> custom) {
-        JPanel inner = new JPanel(createMigLayout(4));
-        custom.accept(inner);
-
-        JPanel group = new JPanel(createMigLayout());
-        group.setBorder(IdeBorderFactory.createTitledBorder(groupName));
-        group.add(inner, fillX());
-
-        return group;
-    }
-
-    public static void fillY(JPanel container) {
-        container.add(new JPanel(), fillY());
-    }
-
     /**
      * 增加输入框
      *
      * @param container
-     * @param changeEvent
      */
     public static EditorTextField addInputBox(JPanel container, String labelName) {
         EditorTextField textField = new EditorTextField();
@@ -69,10 +63,16 @@ public class UiUtil {
         return new CC().growY().pushY();
     }
 
-    public static JBCheckBox addSelectBox(JPanel container, String selectName) {
-        JBCheckBox checkBox = new JBCheckBox(selectName);
-        container.add(checkBox, new CC().wrap());
+    public static void fillY(JPanel container) {
+        container.add(new JPanel(), fillY());
+    }
 
+    //单选k
+    public static JBCheckBox addSelectBox(JPanel container, String selectName, Consumer<JBCheckBox> consumer) {
+        JBCheckBox checkBox = new JBCheckBox(selectName);
+        consumer.accept(checkBox);
+
+        container.add(checkBox, new CC().wrap());
         return checkBox;
     }
 
@@ -100,6 +100,16 @@ public class UiUtil {
                 .insets("0");
 
         return new MigLayout(lc);
+    }
+
+    public static ComboBox<String> addDropdownSelectBox(JPanel container, String name, Consumer<ComboBox<String>> custom) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        custom.accept(comboBox);
+
+        container.add(new JLabel(name));
+        container.add(comboBox, new CC().wrap());
+        container.add(new JLabel(), new CC().wrap());
+        return comboBox;
     }
 
     /**

@@ -1,14 +1,14 @@
 package six.eared.macaque.plugin.idea.ui;
 
 
-import com.intellij.ui.EditorTextField;
-import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBRadioButton;
+import org.apache.commons.collections.CollectionUtils;
+import six.eared.macaque.plugin.idea.settings.BetaConfig;
+import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import javax.swing.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
@@ -17,62 +17,53 @@ public class SettingsUI {
 
     private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
 
-    private EditorTextField serverHostTextField;
+    private List<ServerItemUi> servers = new ArrayList<>();
 
-    private EditorTextField serverPortTextField;
+    private BetaConfig betaConfig = new BetaConfig();
 
-    private JBCheckBox compatibilityModeCheckBox;
+    public SettingsUI(Settings settings) {
+        if (settings != null &&
+                CollectionUtils.isNotEmpty(settings.getState().servers)) {
+            int index = 1;
+            for (ServerConfig server : settings.getState().servers) {
+                this.servers.add(new ServerItemUi(index++, server));
+            }
+        }
 
-    private EditorTextField processFilterTextField;
-
-    private JBRadioButton localModeBtn;
-    private JBRadioButton remoteModeBtn;
-    /**
-     * 模式
-     * 0 本地模式
-     * 1 远程模式
-     */
-    private int apiMode;
-    public SettingsUI() {
-        UiUtil.addGroup(panelContainer, "Main", (inner) -> {
-            JBRadioButton [] btns = addModeChangeRadio(inner);
-            localModeBtn = btns[0];
-            remoteModeBtn = btns[1];
-            serverHostTextField = addInputBox(inner, "Server Host");
-            serverPortTextField = addInputBox(inner, "Server Port");
-            processFilterTextField = addInputBox(inner, "Process Filter");
+        UiUtil.addGroup(panelContainer, "Servers", (inner) -> {
+            for (ServerItemUi server : servers) {
+                addGroup(inner, server.getName(), server, true);
+            }
         });
 
         UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
-            compatibilityModeCheckBox = addSelectBox(inner, "兼容模式");
+            addSelectBox(inner, "兼容模式", (checkBox) -> {
+                checkBox.addChangeListener(event -> {
+                    System.out.println(event.getSource());
+                });
+            });
         });
-        remoteModeBtn.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                serverHostTextField.setEnabled(e.getStateChange() == ItemEvent.SELECTED);
-                serverPortTextField.setEnabled(e.getStateChange() == ItemEvent.SELECTED);
-                apiMode = e.getStateChange() == ItemEvent.SELECTED?1:0;
-            }
-        });
+
         // TODO 添加检查配置的按钮
+
         UiUtil.fillY(panelContainer);
     }
 
     public void initValue(Settings.State state) {
         if (state != null) {
-            serverHostTextField.setText(state.macaqueServerHost);
-            serverPortTextField.setText(state.macaqueServerPort);
-            compatibilityModeCheckBox.setSelected(state.compatibilityMode);
-            if(state.mode==0){
-                localModeBtn.setSelected(true);
-                remoteModeBtn.setSelected(false);
-
-                serverHostTextField.setEnabled(false);
-                serverPortTextField.setEnabled(false);
-            }else{
-                localModeBtn.setSelected(false);
-                remoteModeBtn.setSelected(true);
-            }
+//            serverHostTextField.setText(state.macaqueServerHost);
+//            serverPortTextField.setText(state.macaqueServerPort);
+//            compatibilityModeCheckBox.setSelected(state.compatibilityMode);
+//            if (state.mode == 0) {
+//                localModeBtn.setSelected(true);
+//                remoteModeBtn.setSelected(false);
+//
+//                serverHostTextField.setEnabled(false);
+//                serverPortTextField.setEnabled(false);
+//            } else {
+//                localModeBtn.setSelected(false);
+//                remoteModeBtn.setSelected(true);
+//            }
         }
     }
 
@@ -81,16 +72,16 @@ public class SettingsUI {
     }
 
     public Settings.State getPanelConfig() {
-        String hostText = serverHostTextField.getText();
-        String portText = serverPortTextField.getText();
-        String processFilter = processFilterTextField.getText();
-        boolean selected = compatibilityModeCheckBox.isSelected();
+
+        List<ServerConfig> panelServerConfigs = new ArrayList<>();
+        for (ServerItemUi server : servers) {
+            ServerConfig panelConfig = server.getPanelConfig();
+            panelServerConfigs.add((ServerConfig) panelConfig.clone());
+        }
+
         Settings.State settings = new Settings.State();
-        settings.macaqueServerHost = hostText;
-        settings.macaqueServerPort = portText;
-        settings.compatibilityMode = selected;
-        settings.processFilter  = processFilter;
-        settings.mode = this.apiMode;
+        settings.servers = panelServerConfigs;
+        settings.betaConfig = (BetaConfig) betaConfig.clone();
         return settings;
     }
 }

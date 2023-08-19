@@ -1,45 +1,38 @@
 package six.eared.macaque.plugin.idea.api;
 
 import com.intellij.openapi.project.Project;
-import six.eared.macaque.plugin.idea.jps.JpsHolder;
-import six.eared.macaque.plugin.idea.notify.Notify;
+import org.apache.commons.lang.StringUtils;
+import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 后端接口抽象类
  */
 public abstract class ServerApi {
-    /**
-     * -1 未初始化
-     * 0 远程模式
-     * 1 本地模式
-     */
-    public static int localMode = -1;
 
-    public static ServerApi getAPI(Project project) {
-        if (localMode == -1) {
-            //初始化
-            Settings settings = project.getService(Settings.class);
-            if (settings == null) {
-                Notify.error("Not configuration macaque server");
-                return localApi;
-            }
-            localMode = settings.getState().mode;
-        }
-        if (localMode == 0) {
-            return localApi;
-        } else {
-            if (remoteApi == null) {
-                remoteApi = new RemoteApiImpl();
-            }
-            return remoteApi;
-        }
+    protected Project project;
+
+    protected ServerConfig serverConfig;
+
+    protected ServerApi(Project project, ServerConfig serverConfig) {
+        this.project = project;
+        this.serverConfig = serverConfig;
     }
 
-    public static ServerApi localApi = new LocalApiImpl();
-    public static ServerApi remoteApi = null;
+    protected List<ProcessItem> filterProcess(List<ProcessItem> processList) {
+        return processList.stream()
+                .filter(item -> {
+                    if (StringUtils.isNotBlank(serverConfig.pattern)) {
+                        return item.process.matches(serverConfig.pattern)
+                                || item.process.contains(serverConfig.pattern);
+                    }
+                    return true;
+                }).collect(Collectors.toList());
+    }
 
     /**
      * 替换包
@@ -49,8 +42,19 @@ public abstract class ServerApi {
     /**
      * 获取jps进程信息
      *
-     * @param project
-     * @param instance
      */
-    public abstract void setJPSList(Project project, JpsHolder instance);
+    public abstract List<ProcessItem> getJavaProcess();
+
+    public static class ProcessItem {
+
+        /**
+         * 进程pid
+         */
+        public String pid;
+
+        /**
+         * 进程名
+         */
+        public String process;
+    }
 }

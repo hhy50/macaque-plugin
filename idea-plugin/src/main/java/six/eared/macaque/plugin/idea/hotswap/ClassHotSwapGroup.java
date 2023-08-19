@@ -7,6 +7,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 
 import java.util.ArrayList;
@@ -19,14 +20,14 @@ public class ClassHotSwapGroup extends ActionGroup {
     public AnAction @NotNull [] getChildren(@Nullable AnActionEvent event) {
         Project project = event.getProject();
         JpsHolder instance = JpsHolder.getInstance(project);
-        JpsHolder.State state = instance.getState();
 
         List<AnAction> actions = new ArrayList<>();
-        for (JpsHolder.ProcessItem processItem : state.processList) {
-            actions.add(new ClassHotSwapAction(processItem.pid, processItem.process));
+        for (JpsHolder.ProcessGroup processGroup : instance.getState().processGroups) {
+            for (ServerApi.ProcessItem processItem : processGroup.processList) {
+                actions.add(new ClassHotSwapAction(processGroup.serverUnique, processItem.pid, processItem.process));
+            }
+            actions.add(new Separator());
         }
-
-        actions.add(new Separator());
         actions.add(new RefreshJavaProcessAction());
         return actions.toArray(new AnAction[0]);
     }

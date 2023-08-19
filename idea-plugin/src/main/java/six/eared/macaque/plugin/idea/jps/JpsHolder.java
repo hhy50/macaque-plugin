@@ -4,22 +4,19 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.api.ServerApi;
+import six.eared.macaque.plugin.idea.api.ServerApiFactory;
+import six.eared.macaque.plugin.idea.settings.ServerConfig;
+import six.eared.macaque.plugin.idea.settings.Settings;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 @State(name = PluginInfo.JPS_PROCESS_ID)
 public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
 
     private static final Map<Project, JpsHolder.State> HOLDER =
             new HashMap<>();
-
 
     public static final int MAX_PROCESS_NAME_LENGTH = 60;
 
@@ -29,19 +26,27 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
         this.project = project;
     }
 
-    public static JpsHolder getInstance(Project project) {
+    public static @NotNull JpsHolder getInstance(Project project) {
         return project.getService(JpsHolder.class);
     }
 
-    public static void refresh(Project project) {
-        JpsHolder instance = getInstance(project);
-        instance.getState().processList = Collections.EMPTY_LIST;
+    public synchronized static void refresh(Project project) {
+        Settings settings = Settings.getInstance(project);
+        if (settings != null) {
+            List<ServerConfig> servers = settings.getState().servers;
 
-        ServerApi.getAPI(project).setJPSList(project,instance);
+            List<ProcessGroup> processGroups = new ArrayList<>();
+            for (ServerConfig server : servers) {
+                ServerApi api = ServerApiFactory.getAPI(project, server);
+                processGroups.add(new ProcessGroup(server.unique, api.getJavaProcess()));
+            }
+            JpsHolder instance = getInstance(project);
+            instance.getState().processGroups = processGroups;
+        }
     }
 
     @Override
-    public @Nullable JpsHolder.State getState() {
+    public @NotNull JpsHolder.State getState() {
         State state = HOLDER.get(project);
         if (state == null) {
             state = new State();
@@ -52,16 +57,27 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
 
     @Override
     public void loadState(@NotNull State state) {
-        HOLDER.put(project, state);
+        HOLDER.put(this.project, state);
     }
 
     public static class State {
-        public List<ProcessItem> processList = Collections.EMPTY_LIST;
+
+        public List<ProcessGroup> processGroups = Collections.EMPTY_LIST;
     }
 
-    public static class ProcessItem {
-        public String pid;
+    public static class ProcessGroup {
 
-        public String process;
+        public String serverUnique;
+
+        public List<ServerApi.ProcessItem> processList;
+
+        public ProcessGroup() {
+
+        }
+
+        public ProcessGroup(String unique, List<ServerApi.ProcessItem> javaProcess) {
+            this.serverUnique = unique;
+            this.processList = javaProcess;
+        }
     }
 }
