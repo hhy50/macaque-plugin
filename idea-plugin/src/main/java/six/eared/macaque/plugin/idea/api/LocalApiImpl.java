@@ -6,7 +6,12 @@ import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.client.attach.Attach;
 import six.eared.macaque.client.attach.DefaultAttachFactory;
 import six.eared.macaque.client.common.PortNumberGenerator;
+import six.eared.macaque.client.jmx.JmxClient;
+import six.eared.macaque.client.jmx.JmxClientResourceManager;
 import six.eared.macaque.client.process.JavaProcessHolder;
+import six.eared.macaque.mbean.MBean;
+import six.eared.macaque.mbean.MBeanObjectName;
+import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
 
@@ -16,11 +21,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class LocalApiImpl extends ServerApi {
 
     private static String AGENT_PATH;
+
+    private static final TreeSet<Integer> ATTACH_HISTORY = new TreeSet<>();
 
     private final DefaultAttachFactory defaultAttachFactory = new DefaultAttachFactory();
 
@@ -28,9 +36,11 @@ public class LocalApiImpl extends ServerApi {
         URL resource = LocalApiImpl.class.getClassLoader().getResource("lib/macaque-agent.jar");
         if (resource != null) {
             try {
-                String tmp = System.getProperty("java.io.tmpdir") + File.separator + "macaque-agent.jar";
-                FileUtil.copy(resource.openStream(), new FileOutputStream(tmp));
-                AGENT_PATH = tmp;
+                File tmp = new File(System.getProperty("java.io.tmpdir") + File.separator + "macaque-agent.jar");
+                if (!tmp.exists()) {
+                    FileUtil.copy(resource.openStream(), new FileOutputStream(tmp));
+                }
+                AGENT_PATH = tmp.getPath();
             } catch (IOException e) {
                 Notify.error(e.getMessage());
             }
@@ -46,21 +56,46 @@ public class LocalApiImpl extends ServerApi {
     }
 
     protected boolean attach(Integer pid) {
-        Attach runtimeAttach
-                = this.defaultAttachFactory.createRuntimeAttach(String.valueOf(pid));
+        if (ATTACH_HISTORY.contains(pid)) {
+            // TODO pid重复的问题，最好根据进程启动时间判断
+            return true;
+        }
+
+        Attach runtimeAttach = this.defaultAttachFactory.createRuntimeAttach(String.valueOf(pid));
         Integer agentPort = PortNumberGenerator.getPort(pid);
         String property = "port=" + agentPort + ",debug=true";
-        return runtimeAttach.attach(AGENT_PATH, property);
+
+        if (runtimeAttach.attach(AGENT_PATH, property)) {
+            ATTACH_HISTORY.add(pid);
+            Notify.info(String.format("attach '%s' succeed", pid));
+            return true;
+        }
+        Notify.error(String.format("attach '%s' failed", pid));
+        return false;
     }
 
     /**
      * 替换包
      */
     public void doRedefine(File file, String pid) {
+        if (JpsHolder.getInstance(project).getState().getProcess(serverUnique)
+                .stream().noneMatch(item -> item.pid.equals(pid))) {
+            Notify.error(String.format("pid '%s' does not exist", pid));
+            return;
+        }
+
         if (attach(Integer.parseInt(pid))) {
-            Notify.info(String.format("attach '%s' succeed", pid));
-        } else {
-            Notify.error("attach failed");
+            JmxClient jmxClient = JmxClientResourceManager.getInstance()
+                    .getResource(pid);
+            if (jmxClient != null) {
+                MBean<ClassHotSwapRmiData> hotSwapMBean = jmxClient.getMBean(MBeanObjectName.HOT_SWAP_MBEAN);
+                try {
+                    hotSwapMBean.process(new ClassHotSwapRmiData(file.getName(), "class", FileUtil.loadFileBytes(file)));
+                    Notify.success();
+                } catch (Exception e) {
+                    Notify.error(e.getMessage());
+                }
+            }
         }
     }
 

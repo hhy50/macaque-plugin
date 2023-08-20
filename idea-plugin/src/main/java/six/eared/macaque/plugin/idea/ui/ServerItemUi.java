@@ -44,11 +44,9 @@ public class ServerItemUi extends JPanel {
         this.serverHostTextField = addInputBox(this, "Server Host");
         this.serverPortTextField = addInputBox(this, "Server Port");
         this.processPatternTextField = addInputBox(this, "Pattern");
-
-        initValue();
     }
 
-    private void initValue() {
+    public void initValue() {
         this.mode.setItem(this.serverConfig.mode);
         this.serverNameTextField.setText(this.serverConfig.serverName);
         this.serverHostTextField.setText(this.serverConfig.serverHost);

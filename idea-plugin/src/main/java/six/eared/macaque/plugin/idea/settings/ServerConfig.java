@@ -1,11 +1,14 @@
 package six.eared.macaque.plugin.idea.settings;
 
 import org.apache.commons.lang.StringUtils;
+import six.eared.macaque.plugin.idea.common.ServerMode;
 
 import java.util.Objects;
 import java.util.UUID;
 
 public class ServerConfig extends Config {
+
+    public static final ServerConfig DEFAULT_LOCAL = new ServerConfig("DEFAULT", ServerMode.LOCAL);
 
     public String unique;
 
@@ -25,6 +28,11 @@ public class ServerConfig extends Config {
 
     public ServerConfig(String unique) {
         this.unique = unique;
+    }
+
+    public ServerConfig(String unique, String mode) {
+        this.unique = unique;
+        this.mode = mode;
     }
 
     public String getUrl() {

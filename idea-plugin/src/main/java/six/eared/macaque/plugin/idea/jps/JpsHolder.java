@@ -66,6 +66,15 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
     public static class State implements Serializable {
 
         public List<ProcessGroup> processGroups = Collections.EMPTY_LIST;
+
+        public List<ServerApi.ProcessItem> getProcess(String serverUnique) {
+            for (ProcessGroup group : processGroups) {
+                if (group.serverUnique.equals(serverUnique)) {
+                    return group.processList;
+                }
+            }
+            return Collections.EMPTY_LIST;
+        }
     }
 
     public static class ProcessGroup {

@@ -13,8 +13,6 @@ repositories {
 
 dependencies {
   implementation("six.eared.macaque:macaque-client:1.0")
-  implementation("six.eared.macaque:macaque-common:1.0")
-  implementation("six.eared.macaque:macaque-agent:1.0")
 }
 
 // Configure Gradle IntelliJ Plugin

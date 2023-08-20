@@ -1,5 +1,6 @@
 package six.eared.macaque.plugin.idea.settings;
 
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
 
         this.project = project;
         this.settingsUI = new SettingsUI(settings);
+        WriteCommandAction.runWriteCommandAction(project, () -> this.settingsUI.initValue());
     }
 
     @Override

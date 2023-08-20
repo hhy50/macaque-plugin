@@ -52,9 +52,15 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
     public static class State implements StateCheck {
 
-        public List<ServerConfig> servers = Collections.EMPTY_LIST;
+        public List<ServerConfig> servers = new ArrayList<>();
 
         public BetaConfig betaConfig = BetaConfig.EMPTY;
+
+        {
+            if (CollectionUtils.isEmpty(servers)) {
+                servers.add((ServerConfig) ServerConfig.DEFAULT_LOCAL.clone());
+            }
+        }
 
         @Override
         public boolean equals(Object o) {

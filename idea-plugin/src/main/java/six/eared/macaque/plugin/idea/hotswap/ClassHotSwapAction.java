@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,6 +18,7 @@ import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
 import six.eared.macaque.plugin.idea.notify.Notify;
+import six.eared.macaque.plugin.idea.thread.Executors;
 
 import java.io.File;
 import java.util.function.BiFunction;
@@ -40,34 +40,46 @@ public class ClassHotSwapAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent event) {
         // 获取右击的文件
-        Project project = event.getProject();
         PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
         if (psiFile != null) {
-            try {
-                int option = Messages.showDialog("Whether to compile immediately?", "Choose Compile Option",
-                        CompileOptions.OPTIONS, CompileOptions.DEFAULT, null);
-
-                BiFunction<ProjectBuilder, PsiFile,
-                        Promise<ProjectTaskManager.Result>> handler = CompileOptions.getOption(option);
-                handler.apply(builder, psiFile)
-                        .onSuccess(result -> {
-                            if (!result.hasErrors()) {
-                                int confirm = Messages.showYesNoCancelDialog(
-                                        "This operation will replace the class already loaded in the target process",
-                                        "Warning", null);
-                                if (confirm == 0) {
-                                    serverApi.doRedefine(getCompiledClassFile(psiFile), pid);
-                                }
-                            }
-                        })
-                        .onError(error -> {
-                            Notify.error(error.getMessage());
-                        });
-            } catch (Exception e) {
-                Notify.error(e.getMessage());
+            if (psiFile.getFileType().getName().equalsIgnoreCase("JAVA")) {
+                stepCompile(psiFile);
+            } else {
+                redefine(new File(psiFile.getVirtualFile().getPath()));
             }
         }
+    }
 
+    private void stepCompile(PsiFile psiFile) {
+        try {
+            int option = Messages.showDialog("Whether to compile immediately?", "Choose Compile Option",
+                    CompileOptions.OPTIONS, CompileOptions.DEFAULT, null);
+            if (option == -1) {
+                return;
+            }
+            BiFunction<ProjectBuilder, PsiFile,
+                    Promise<ProjectTaskManager.Result>> handler = CompileOptions.getOption(option);
+            handler.apply(builder, psiFile)
+                    .onSuccess(result -> {
+                        if (!result.hasErrors()) {
+                            redefine(getCompiledClassFile(psiFile));
+                        }
+                    })
+                    .onError(error -> {
+                        Notify.error(error.getMessage());
+                    });
+        } catch (Exception e) {
+            Notify.error(e.getMessage());
+        }
+    }
+
+    public void redefine(File file) {
+        int confirm = Messages.showYesNoCancelDialog(
+                "This operation will replace the class already loaded in the target process",
+                "Warning", null);
+        if (confirm == 0) {
+            Executors.submit(() -> serverApi.redefine(file, pid));
+        }
     }
 
     public File getCompiledClassFile(PsiFile psiFile) {

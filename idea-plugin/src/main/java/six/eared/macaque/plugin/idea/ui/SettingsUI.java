@@ -67,6 +67,12 @@ public class SettingsUI {
         return settings;
     }
 
+    public void initValue() {
+        for (ServerItemUi server : servers) {
+            server.initValue();
+        }
+    }
+
     public void reset(Settings.State state) {
 
     }

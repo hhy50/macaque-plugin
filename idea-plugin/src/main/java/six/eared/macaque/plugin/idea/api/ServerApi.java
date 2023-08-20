@@ -35,10 +35,20 @@ public abstract class ServerApi {
                 }).collect(Collectors.toList());
     }
 
+    public void redefine(File file, String pid) {
+        ClassLoader origin = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ServerApi.class.getClassLoader());
+        try {
+            doRedefine(file, pid);
+        } finally {
+            Thread.currentThread().setContextClassLoader(origin);
+        }
+    }
+
     /**
      * 替换包
      */
-    public abstract void doRedefine(File file, String pid);
+    protected abstract void doRedefine(File file, String pid);
 
     /**
      * 获取jps进程信息
