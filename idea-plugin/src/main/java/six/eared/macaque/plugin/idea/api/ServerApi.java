@@ -3,6 +3,7 @@ package six.eared.macaque.plugin.idea.api;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
+import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.util.List;
@@ -15,14 +16,15 @@ public abstract class ServerApi {
 
     protected Project project;
 
-    protected ServerConfig serverConfig;
+    protected String serverUnique;
 
-    protected ServerApi(Project project, ServerConfig serverConfig) {
+    protected ServerApi(Project project, String serverUnique) {
         this.project = project;
-        this.serverConfig = serverConfig;
+        this.serverUnique = serverUnique;
     }
 
     protected List<ProcessItem> filterProcess(List<ProcessItem> processList) {
+        ServerConfig serverConfig = Settings.getInstance(project).getState().getServerConfig(serverUnique);
         return processList.stream()
                 .filter(item -> {
                     if (StringUtils.isNotBlank(serverConfig.pattern)) {

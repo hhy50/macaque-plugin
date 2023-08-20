@@ -72,7 +72,7 @@ public class Settings implements PersistentStateComponent<Settings.State> {
                     return server;
                 }
             }
-            return null;
+            throw new RuntimeException("Unknown server configuration");
         }
 
         public boolean compareServerConfig(@NotNull List<ServerConfig> to) {

@@ -31,7 +31,7 @@ public class ClassHotSwapGroup extends ActionGroup {
         if (settings != null) {
             JpsHolder jpsHolder = JpsHolder.getInstance(project);
             for (JpsHolder.ProcessGroup processGroup : jpsHolder.getState().processGroups) {
-                ServerApi api = ServerApiFactory.getAPI(project, settings.getState().getServerConfig(processGroup.serverUnique));
+                ServerApi api = ServerApiFactory.getAPI(project, processGroup.serverUnique);
 
                 actions.add(new NotOptionalAction(processGroup.serverName));
                 if (CollectionUtils.isNotEmpty(processGroup.processList)) {

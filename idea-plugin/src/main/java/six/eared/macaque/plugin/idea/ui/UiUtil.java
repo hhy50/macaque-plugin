@@ -25,15 +25,6 @@ public class UiUtil {
         JPanel inner = new JPanel(createMigLayout(4));
         custom.accept(inner);
 
-        addGroup(container, groupName, inner, false);
-    }
-
-    /**
-     * addGroup
-     *
-     * @param container
-     */
-    public static void addGroup(JPanel container, String groupName, JPanel inner, boolean wrap) {
         JPanel group = new JPanel(createMigLayout());
         group.setBorder(IdeBorderFactory.createTitledBorder(groupName));
         group.add(inner, fillX());

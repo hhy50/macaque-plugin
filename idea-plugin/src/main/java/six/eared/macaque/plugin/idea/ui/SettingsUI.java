@@ -1,7 +1,7 @@
 package six.eared.macaque.plugin.idea.ui;
 
 
-import org.apache.commons.collections.CollectionUtils;
+import net.miginfocom.layout.CC;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
@@ -22,49 +22,31 @@ public class SettingsUI {
     private BetaConfig betaConfig = new BetaConfig();
 
     public SettingsUI(Settings settings) {
-        if (settings != null &&
-                CollectionUtils.isNotEmpty(settings.getState().servers)) {
+        if (settings != null) {
             int index = 1;
             for (ServerConfig server : settings.getState().servers) {
-                this.servers.add(new ServerItemUi(index++, server));
+                this.servers.add(new ServerItemUi(index++, (ServerConfig) server.clone()));
             }
+            this.betaConfig = (BetaConfig) settings.getState().betaConfig.clone();
         }
 
         UiUtil.addGroup(panelContainer, "Servers", (inner) -> {
             for (ServerItemUi server : servers) {
-                addGroup(inner, server.getName(), server, true);
+                inner.add(server, fillX());
+                inner.add(new JPanel(), new CC().wrap());
             }
         });
 
         UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
             addSelectBox(inner, "兼容模式", (checkBox) -> {
-                checkBox.addChangeListener(event -> {
-                    System.out.println(event.getSource());
+                checkBox.setSelected(this.betaConfig.compatibilityMode);
+                checkBox.addActionListener(event -> {
+                    betaConfig.compatibilityMode = checkBox.isSelected();
                 });
             });
         });
 
-        // TODO 添加检查配置的按钮
-
         UiUtil.fillY(panelContainer);
-    }
-
-    public void initValue(Settings.State state) {
-        if (state != null) {
-//            serverHostTextField.setText(state.macaqueServerHost);
-//            serverPortTextField.setText(state.macaqueServerPort);
-//            compatibilityModeCheckBox.setSelected(state.compatibilityMode);
-//            if (state.mode == 0) {
-//                localModeBtn.setSelected(true);
-//                remoteModeBtn.setSelected(false);
-//
-//                serverHostTextField.setEnabled(false);
-//                serverPortTextField.setEnabled(false);
-//            } else {
-//                localModeBtn.setSelected(false);
-//                remoteModeBtn.setSelected(true);
-//            }
-        }
     }
 
     public JPanel showPanel() {
@@ -83,5 +65,9 @@ public class SettingsUI {
         settings.servers = panelServerConfigs;
         settings.betaConfig = (BetaConfig) betaConfig.clone();
         return settings;
+    }
+
+    public void reset(Settings.State state) {
+
     }
 }

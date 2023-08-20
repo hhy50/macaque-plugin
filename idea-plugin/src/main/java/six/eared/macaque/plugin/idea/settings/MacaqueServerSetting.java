@@ -64,7 +64,7 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     public void reset() {
         Settings settings = Settings.getInstance(project);
         if (settings != null) {
-            this.settingsUI.initValue(settings.getState());
+            this.settingsUI.reset(settings.getState());
         }
     }
 

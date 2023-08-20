@@ -1,6 +1,8 @@
 package six.eared.macaque.plugin.idea.ui;
 
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EditorTextField;
+import com.intellij.ui.IdeBorderFactory;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
@@ -12,9 +14,9 @@ import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
 public class ServerItemUi extends JPanel {
 
-    private String unique;
+    private ServerConfig serverConfig;
 
-    private boolean serverMode;
+    private ComboBox<String> mode;
 
     private EditorTextField serverNameTextField;
 
@@ -24,12 +26,13 @@ public class ServerItemUi extends JPanel {
 
     private EditorTextField processPatternTextField;
 
-    public ServerItemUi(int index, ServerConfig initConfig) {
+    public ServerItemUi(int index, ServerConfig serverConfig) {
         super(createMigLayout(4));
-
         this.setName("server-" + index);
-        addDropdownSelectBox(this, "Mode", mode -> {
-//            mode.addItem(ServerMode.LOCAL);
+        this.setBorder(IdeBorderFactory.createTitledBorder("server-"+index));
+        this.serverConfig = serverConfig;
+        this.mode = addDropdownSelectBox(this, "Mode", mode -> {
+            mode.addItem(ServerMode.LOCAL);
             mode.addItem(ServerMode.SERVER);
             mode.addItemListener(event -> {
                 if (event.getStateChange() == ItemEvent.SELECTED) {
@@ -42,34 +45,26 @@ public class ServerItemUi extends JPanel {
         this.serverPortTextField = addInputBox(this, "Server Port");
         this.processPatternTextField = addInputBox(this, "Pattern");
 
-        initValue(initConfig);
+        initValue();
     }
 
-    private void initValue(ServerConfig value) {
-        this.unique = value.unique;
-        this.serverNameTextField.setText(value.serverName);
-        this.serverHostTextField.setText(value.serverHost);
-        this.serverPortTextField.setText(value.sererPort);
-        this.processPatternTextField.setText(value.pattern);
+    private void initValue() {
+        this.mode.setItem(this.serverConfig.mode);
+        this.serverNameTextField.setText(this.serverConfig.serverName);
+        this.serverHostTextField.setText(this.serverConfig.serverHost);
+        this.serverPortTextField.setText(this.serverConfig.sererPort);
+        this.processPatternTextField.setText(this.serverConfig.pattern);
     }
 
     private void eventChange(String seleced) {
-        this.serverMode = seleced.equals(ServerMode.SERVER);
-        if (this.serverMode) {
-
-        } else {
-            this.remove(this.serverHostTextField);
-            this.remove(this.serverPortTextField);
-        }
+        serverConfig.mode = seleced;
     }
 
     public ServerConfig getPanelConfig() {
-        ServerConfig panelConfig = new ServerConfig(unique);
-        panelConfig.mode = serverMode ? ServerMode.SERVER : ServerMode.LOCAL;
-        panelConfig.serverName = StringUtils.isEmpty(serverNameTextField.getText()) ? null : serverNameTextField.getText();
-        panelConfig.serverHost = StringUtils.isEmpty(serverHostTextField.getText()) ? null : serverHostTextField.getText();
-        panelConfig.sererPort = StringUtils.isEmpty(serverPortTextField.getText()) ? null : serverPortTextField.getText();
-        panelConfig.pattern = StringUtils.isEmpty(processPatternTextField.getText()) ? null : processPatternTextField.getText();
-        return panelConfig;
+        serverConfig.serverName = StringUtils.isEmpty(serverNameTextField.getText()) ? null : serverNameTextField.getText();
+        serverConfig.serverHost = StringUtils.isEmpty(serverHostTextField.getText()) ? null : serverHostTextField.getText();
+        serverConfig.sererPort = StringUtils.isEmpty(serverPortTextField.getText()) ? null : serverPortTextField.getText();
+        serverConfig.pattern = StringUtils.isEmpty(processPatternTextField.getText()) ? null : processPatternTextField.getText();
+        return serverConfig;
     }
 }

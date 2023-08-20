@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.api.ServerApiFactory;
+import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
@@ -38,11 +39,12 @@ public class JpsHolder implements PersistentStateComponent<JpsHolder.State> {
 
             List<ProcessGroup> processGroups = new ArrayList<>();
             for (ServerConfig server : servers) {
-                ServerApi api = ServerApiFactory.getAPI(project, server);
+                ServerApi api = ServerApiFactory.getAPI(project, server.unique);
                 processGroups.add(new ProcessGroup(server.unique, server.serverName, api.getJavaProcess()));
             }
             JpsHolder instance = getInstance(project);
             instance.getState().processGroups = processGroups;
+            Notify.success("Refresh success");
         }
     }
 

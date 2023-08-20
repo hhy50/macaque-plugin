@@ -32,7 +32,7 @@ public class ServerConfig extends Config {
         if (serverHost != null && !serverHost.startsWith("http")) {
             scheme = "http://";
         }
-        return scheme + serverHost + ":" + serverHost;
+        return scheme + serverHost + ":" + sererPort;
     }
 
     public String getUnique() {
@@ -54,8 +54,10 @@ public class ServerConfig extends Config {
 
     @Override
     public String toString() {
-        return "ServerItemConfig{" +
-                "serverName='" + serverName + '\'' +
+        return "ServerConfig{" +
+                "unique='" + unique + '\'' +
+                ", serverName='" + serverName + '\'' +
+                ", mode='" + mode + '\'' +
                 ", serverHost='" + serverHost + '\'' +
                 ", sererPort='" + sererPort + '\'' +
                 ", pattern='" + pattern + '\'' +

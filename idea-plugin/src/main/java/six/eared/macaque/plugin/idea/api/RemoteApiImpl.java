@@ -9,6 +9,7 @@ import six.eared.macaque.plugin.idea.http.response.JpsResponse;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
+import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.util.Collections;
@@ -17,17 +18,15 @@ import java.util.stream.Collectors;
 
 public class RemoteApiImpl extends ServerApi {
 
-    private Jps jps;
-
-    public RemoteApiImpl(Project project, ServerConfig serverConfig) {
-        super(project, serverConfig);
-        this.jps = new Jps(serverConfig.getUrl());
+    public RemoteApiImpl(Project project, String serverUnique) {
+        super(project, serverUnique);
     }
 
     /**
      * 替换包
      */
     public void doRedefine(File file, String pid) {
+        ServerConfig serverConfig = Settings.getInstance(project).getState().getServerConfig(serverUnique);
         try {
             HotSwap hotSwap = new HotSwap(serverConfig.getUrl());
             hotSwap.setPid(pid);
@@ -50,6 +49,8 @@ public class RemoteApiImpl extends ServerApi {
     @Override
     public List<ProcessItem> getJavaProcess() {
         try {
+            ServerConfig serverConfig = Settings.getInstance(project).getState().getServerConfig(serverUnique);
+            Jps jps = new Jps(serverConfig.getUrl());
             JpsResponse response = jps.execute();
             if (response.isSuccess()) {
                 List<ProcessItem> proList = response.getData().stream()
@@ -63,11 +64,10 @@ public class RemoteApiImpl extends ServerApi {
                             return (ProcessItem) processItem;
                         })
                         .collect(Collectors.toList());
-                Notify.success("Refresh success");
                 return filterProcess(proList);
             }
         } catch (Exception e) {
-            Notify.error(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
+            Notify.info(StringUtils.isBlank(e.getMessage()) ? "Error" : e.getMessage());
         }
         return Collections.EMPTY_LIST;
     }

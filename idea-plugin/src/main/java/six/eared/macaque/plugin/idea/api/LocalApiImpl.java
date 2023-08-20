@@ -1,5 +1,6 @@
 package six.eared.macaque.plugin.idea.api;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.client.attach.Attach;
@@ -8,7 +9,6 @@ import six.eared.macaque.client.common.PortNumberGenerator;
 import six.eared.macaque.client.process.JavaProcessHolder;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
-import six.eared.macaque.plugin.idea.settings.ServerConfig;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,8 +41,8 @@ public class LocalApiImpl extends ServerApi {
         }
     }
 
-    public LocalApiImpl(ServerConfig serverConfig) {
-        super(null, serverConfig);
+    public LocalApiImpl(Project project, String serverUnique) {
+        super(project, serverUnique);
     }
 
     protected boolean attach(Integer pid) {
@@ -66,8 +66,8 @@ public class LocalApiImpl extends ServerApi {
 
     @Override
     public List<ProcessItem> getJavaProcess() {
-        JavaProcessHolder.refresh();
         try {
+            JavaProcessHolder.refresh();
             List<ProcessItem> processList = JavaProcessHolder.getJavaProcess().stream()
                     .map(item -> {
                         String process = item.getSecond();
