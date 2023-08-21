@@ -40,6 +40,8 @@ public class ServerItemUi extends JPanel {
         this.serverPortTextField = addInputBox(this, "Server Port");
         this.processPatternTextField = addInputBox(this, "Pattern");
         this.add(creatRemoveBtn());
+
+        eventChange();
     }
 
     public void initValue() {
@@ -50,7 +52,16 @@ public class ServerItemUi extends JPanel {
     }
 
     private void eventChange() {
-        serverConfig.mode = this.mode.getItem();
+        switch (serverConfig.mode) {
+            case ServerMode.SERVER:
+                this.serverHostTextField.setEnabled(true);
+                this.serverPortTextField.setEnabled(true);
+                break;
+            case ServerMode.LOCAL:
+                this.serverHostTextField.setEnabled(false);
+                this.serverPortTextField.setEnabled(false);
+                break;
+        }
     }
 
     public ServerConfig getPanelConfig() {
@@ -79,6 +90,7 @@ public class ServerItemUi extends JPanel {
         ComboBox<String> comboBox = new ComboBox<>(new String[]{ServerMode.LOCAL, ServerMode.SERVER});
         comboBox.setItem(this.serverConfig.mode);
         comboBox.addActionListener(e -> {
+            this.serverConfig.mode = this.mode.getItem();
             eventChange();
         });
         return comboBox;
