@@ -10,6 +10,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
 public class UiUtil {
@@ -25,6 +26,10 @@ public class UiUtil {
         JPanel inner = new JPanel(createMigLayout(4));
         custom.accept(inner);
 
+        addGroup(container, groupName, inner);
+    }
+
+    public static void addGroup(JPanel container, String groupName, JPanel inner) {
         JPanel group = new JPanel(createMigLayout());
         group.setBorder(IdeBorderFactory.createTitledBorder(groupName));
         group.add(inner, fillX());
@@ -50,15 +55,10 @@ public class UiUtil {
         return new CC().growX().pushX();
     }
 
-    public static CC fillY() {
-        return new CC().growY().pushY();
-    }
-
     public static void fillY(JPanel container) {
-        container.add(new JPanel(), fillY());
+        container.add(new JPanel(), new CC().growY().pushY());
     }
 
-    //单选k
     public static JBCheckBox addSelectBox(JPanel container, String selectName, Consumer<JBCheckBox> consumer) {
         JBCheckBox checkBox = new JBCheckBox(selectName);
         consumer.accept(checkBox);
@@ -93,10 +93,7 @@ public class UiUtil {
         return new MigLayout(lc);
     }
 
-    public static ComboBox<String> addDropdownSelectBox(JPanel container, String name, Consumer<ComboBox<String>> custom) {
-        ComboBox<String> comboBox = new ComboBox<>();
-        custom.accept(comboBox);
-
+    public static ComboBox<String> addDropdownSelectBox(JPanel container, String name, ComboBox<String> comboBox) {
         container.add(new JLabel(name));
         container.add(comboBox, new CC().wrap());
         container.add(new JLabel(), new CC().wrap());
@@ -126,5 +123,10 @@ public class UiUtil {
         localMode.setSelected(true);
 
         return new JBRadioButton []{localMode,remoteMode};
+    }
+
+    public static void addButton(JPanel container, JButton button, Consumer<ActionEvent> accept) {
+        button.addActionListener(accept::accept);
+        container.add(button);
     }
 }

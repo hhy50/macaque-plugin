@@ -56,12 +56,6 @@ public class Settings implements PersistentStateComponent<Settings.State> {
 
         public BetaConfig betaConfig = BetaConfig.EMPTY;
 
-        {
-            if (CollectionUtils.isEmpty(servers)) {
-                servers.add((ServerConfig) ServerConfig.DEFAULT_LOCAL.clone());
-            }
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

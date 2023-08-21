@@ -2,6 +2,7 @@ package six.eared.macaque.plugin.idea.ui;
 
 
 import net.miginfocom.layout.CC;
+import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
@@ -15,26 +16,35 @@ import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
 public class SettingsUI {
 
+    private volatile int index = 1;
+
     private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
 
     private List<ServerItemUi> servers = new ArrayList<>();
 
     private BetaConfig betaConfig = new BetaConfig();
 
+    private JPanel serversPanel = new JPanel(createMigLayout(4));;
+
     public SettingsUI(Settings settings) {
         if (settings != null) {
-            int index = 1;
             for (ServerConfig server : settings.getState().servers) {
-                this.servers.add(new ServerItemUi(index++, (ServerConfig) server.clone()));
+                ServerItemUi serverItemUi = new ServerItemUi(this.index++, (ServerConfig) server.clone());
+                this.servers.add(serverItemUi);
+                this.serversPanel.add(serverItemUi, fillX());
+                this.serversPanel.add(new JPanel(), new CC().wrap());
             }
             this.betaConfig = (BetaConfig) settings.getState().betaConfig.clone();
         }
 
-        UiUtil.addGroup(panelContainer, "Servers", (inner) -> {
-            for (ServerItemUi server : servers) {
-                inner.add(server, fillX());
-                inner.add(new JPanel(), new CC().wrap());
-            }
+        UiUtil.addGroup(panelContainer, "Servers", this.serversPanel);
+
+        UiUtil.addButton(panelContainer, new JButton("Add"), (inner) -> {
+            boolean existLocal = this.servers.stream().anyMatch(item -> item.getPanelConfig().mode.equals(ServerMode.LOCAL));
+            ServerItemUi serverItemUi = new ServerItemUi(this.index++, new ServerConfig(existLocal ? ServerMode.SERVER : ServerMode.LOCAL));
+            this.servers.add(serverItemUi);
+            this.serversPanel.add(serverItemUi, fillX());
+            this.serversPanel.add(new JPanel(), new CC().wrap());
         });
 
         UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
@@ -57,6 +67,9 @@ public class SettingsUI {
 
         List<ServerConfig> panelServerConfigs = new ArrayList<>();
         for (ServerItemUi server : servers) {
+            if (server.isDelete()) {
+                continue;
+            }
             ServerConfig panelConfig = server.getPanelConfig();
             panelServerConfigs.add((ServerConfig) panelConfig.clone());
         }

@@ -21,7 +21,6 @@ public class ServerApiFactory {
         return serverApi;
     }
 
-
     public static ServerApi createApi(Project project, String serverUnique) {
         ServerConfig serverConfig = Settings.getInstance(project).getState().getServerConfig(serverUnique);
         switch (serverConfig.mode) {
@@ -31,5 +30,9 @@ public class ServerApiFactory {
                 return new LocalApiImpl(project, serverUnique);
         }
         return null;
+    }
+
+    public static void clear() {
+        cache.clear();
     }
 }
