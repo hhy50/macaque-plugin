@@ -10,6 +10,7 @@ import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
@@ -43,12 +44,19 @@ public class UiUtil {
      * @param container
      */
     public static EditorTextField addInputBox(JPanel container, String labelName) {
-        EditorTextField textField = new EditorTextField();
-        container.add(new JLabel(labelName));
-        container.add(textField, fillX());
-        container.add(new JLabel(), new CC().wrap());
+        JPanel inner = new JPanel(createMigLayout());
 
-        return textField;
+
+        JLabel jLabel = new JLabel(labelName);
+        jLabel.setPreferredSize(new Dimension(100, 30));
+
+        inner.add(jLabel);
+        inner.add(new EditorTextField(), fillX());
+
+
+        container.add(inner, fillX());
+        container.add(new JLabel(), new CC().wrap());
+        return new EditorTextField();
     }
 
     public static CC fillX() {
@@ -128,5 +136,17 @@ public class UiUtil {
     public static void addButton(JPanel container, JButton button, Consumer<ActionEvent> accept) {
         button.addActionListener(accept::accept);
         container.add(button);
+    }
+
+    /**
+     *
+     * @param name
+     * @return
+     */
+    public static JLabel createEqualWidthLabel(String name) {
+        JLabel label = new JLabel(name);
+        label.setPreferredSize(new Dimension(100, 30));
+
+        return label;
     }
 }

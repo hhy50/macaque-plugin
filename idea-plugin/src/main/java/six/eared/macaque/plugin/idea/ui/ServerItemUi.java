@@ -1,16 +1,15 @@
 package six.eared.macaque.plugin.idea.ui;
 
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;
+import net.miginfocom.layout.CC;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 
 import javax.swing.*;
-import java.awt.*;
 
-import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
+import static six.eared.macaque.plugin.idea.ui.UiUtil.createMigLayout;
+import static six.eared.macaque.plugin.idea.ui.UiUtil.fillX;
 
 public class ServerItemUi extends JPanel {
 
@@ -18,15 +17,15 @@ public class ServerItemUi extends JPanel {
 
     private ServerConfig serverConfig;
 
-    private ComboBox<String> mode;
+    private DropdownSelectBoxUi<String> mode;
 
-    private EditorTextField serverNameTextField;
+    private InputUi serverName;
 
-    private EditorTextField serverHostTextField;
+    private InputUi serverHost;
 
-    private EditorTextField serverPortTextField;
+    private InputUi serverPort;
 
-    private EditorTextField processPatternTextField;
+    private InputUi pattern;
 
     public ServerItemUi(int index, ServerConfig serverConfig) {
         super(createMigLayout(4));
@@ -34,66 +33,59 @@ public class ServerItemUi extends JPanel {
         this.setBorder(IdeBorderFactory.createTitledBorder("server-" + index));
 
         this.serverConfig = serverConfig;
-        this.mode = addDropdownSelectBox(this, "Mode", createDropdownSelectBox());
-        this.serverNameTextField = addInputBox(this, "Server Name");
-        this.serverHostTextField = addInputBox(this, "Server Host");
-        this.serverPortTextField = addInputBox(this, "Server Port");
-        this.processPatternTextField = addInputBox(this, "Pattern");
-        this.add(creatRemoveBtn());
+        this.mode = new DropdownSelectBoxUi<>("Mode", new String[]{ServerMode.LOCAL, ServerMode.SERVER},
+                this.serverConfig.mode, this::eventChange);
+        this.serverName = new InputUi("Server Name");
+        this.serverHost = new InputUi("Server Host");
+        this.serverPort = new InputUi("Server Port");
+        this.pattern = new InputUi("Pattern");
 
-        eventChange();
+        resetUi(this.serverConfig.mode);
+    }
+
+    private void resetUi(String currentMode) {
+        this.removeAll();
+
+        this.add(this.mode, fillX());
+        this.add(new JLabel(), new CC().wrap());
+        this.add(this.serverName, fillX());
+        this.add(new JLabel(), new CC().wrap());
+        if (currentMode.equals(ServerMode.SERVER)) {
+            this.add(this.serverHost, fillX());
+            this.add(new JLabel(), new CC().wrap());
+            this.add(this.serverPort, fillX());
+            this.add(new JLabel(), new CC().wrap());
+        }
+        this.add(this.pattern, fillX());
+        this.add(new JLabel(), new CC().wrap());
     }
 
     public void initValue() {
-        this.serverNameTextField.setText(this.serverConfig.serverName);
-        this.serverHostTextField.setText(this.serverConfig.serverHost);
-        this.serverPortTextField.setText(this.serverConfig.sererPort);
-        this.processPatternTextField.setText(this.serverConfig.pattern);
+        this.serverName.setValue(this.serverConfig.serverName);
+        this.serverHost.setValue(this.serverConfig.serverHost);
+        this.serverPort.setValue(this.serverConfig.sererPort);
+        this.pattern.setValue(this.serverConfig.pattern);
     }
 
-    private void eventChange() {
-        switch (serverConfig.mode) {
+    private void eventChange(String seleced) {
+        switch (seleced) {
             case ServerMode.SERVER:
-                this.serverHostTextField.setEnabled(true);
-                this.serverPortTextField.setEnabled(true);
                 break;
             case ServerMode.LOCAL:
-                this.serverHostTextField.setEnabled(false);
-                this.serverPortTextField.setEnabled(false);
+                this.serverHost.setValue("");
+                this.serverPort.setValue("");
                 break;
         }
+        this.resetUi(seleced);
     }
 
     public ServerConfig getPanelConfig() {
-        serverConfig.serverName = StringUtils.isEmpty(serverNameTextField.getText()) ? null : serverNameTextField.getText();
-        serverConfig.serverHost = StringUtils.isEmpty(serverHostTextField.getText()) ? null : serverHostTextField.getText();
-        serverConfig.sererPort = StringUtils.isEmpty(serverPortTextField.getText()) ? null : serverPortTextField.getText();
-        serverConfig.pattern = StringUtils.isEmpty(processPatternTextField.getText()) ? null : processPatternTextField.getText();
-        return serverConfig;
-    }
-
-    private Component creatRemoveBtn() {
-        ServerItemUi that = this;
-
-        JButton remove = new JButton("Remove");
-        remove.addActionListener(e -> {
-            that.delete = true;
-            final Container parent = that.getParent();
-            parent.remove(that);
-        });
-        Panel panel = new Panel();
-        panel.add(remove, BorderLayout.EAST);
-        return panel;
-    }
-
-    private ComboBox<String> createDropdownSelectBox() {
-        ComboBox<String> comboBox = new ComboBox<>(new String[]{ServerMode.LOCAL, ServerMode.SERVER});
-        comboBox.setItem(this.serverConfig.mode);
-        comboBox.addActionListener(e -> {
-            this.serverConfig.mode = this.mode.getItem();
-            eventChange();
-        });
-        return comboBox;
+        this.serverConfig.mode = this.mode.getSelect();
+        this.serverConfig.serverName = StringUtils.isEmpty(serverName.getValue()) ? null : serverName.getValue();
+        this.serverConfig.serverHost = StringUtils.isEmpty(serverHost.getValue()) ? null : serverHost.getValue();
+        this.serverConfig.sererPort = StringUtils.isEmpty(serverPort.getValue()) ? null : serverPort.getValue();
+        this.serverConfig.pattern = StringUtils.isEmpty(pattern.getValue()) ? null : pattern.getValue();
+        return this.serverConfig;
     }
 
     public boolean isDelete() {

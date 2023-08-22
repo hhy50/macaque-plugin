@@ -9,9 +9,9 @@ public class ServerConfig extends Config {
 
     public String unique;
 
-    public String serverName;
-
     public String mode;
+
+    public String serverName;
 
     public String serverHost;
 
@@ -26,11 +26,6 @@ public class ServerConfig extends Config {
     public ServerConfig(String mode) {
         this.mode = mode;
         this.unique = UUID.randomUUID().toString();
-    }
-
-    public ServerConfig(String unique, String mode) {
-        this.unique = unique;
-        this.mode = mode;
     }
 
     public String getUrl() {
