@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.api.ServerApiFactory;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
+import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.util.ArrayList;
@@ -32,8 +33,11 @@ public class ClassHotSwapGroup extends ActionGroup {
             JpsHolder jpsHolder = JpsHolder.getInstance(project);
             for (JpsHolder.ProcessGroup processGroup : jpsHolder.getState().processGroups) {
                 ServerApi api = ServerApiFactory.getAPI(project, processGroup.serverUnique);
-
-                actions.add(new NotOptionalAction(processGroup.serverName));
+                ServerConfig serverConfig = settings.getState().getServerConfig(processGroup.serverUnique);
+                if (serverConfig == null) {
+                    continue;
+                }
+                actions.add(new NotOptionalAction(getGroupName(serverConfig)));
                 if (CollectionUtils.isNotEmpty(processGroup.processList)) {
                     for (ServerApi.ProcessItem processItem : processGroup.processList) {
                         actions.add(new ClassHotSwapAction(api, processItem.pid, processItem.process));
@@ -46,6 +50,16 @@ public class ClassHotSwapGroup extends ActionGroup {
             actions.add(new RefreshJavaProcessAction());
         }
         return actions.toArray(new AnAction[0]);
+    }
+
+    private String getGroupName(ServerConfig serverConfig) {
+        if (serverConfig.serverName != null) {
+            return serverConfig.serverName;
+        }
+        if (serverConfig.serverHost != null) {
+            return serverConfig.serverHost;
+        }
+        return serverConfig.mode;
     }
 
     static class NotOptionalAction extends AnAction {

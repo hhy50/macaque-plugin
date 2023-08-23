@@ -13,8 +13,6 @@ import static six.eared.macaque.plugin.idea.ui.UiUtil.fillX;
 
 public class ServerItemUi extends JPanel {
 
-    private volatile boolean delete = false;
-
     private ServerConfig serverConfig;
 
     private DropdownSelectBoxUi<String> mode;
@@ -57,7 +55,6 @@ public class ServerItemUi extends JPanel {
             this.add(new JLabel(), new CC().wrap());
         }
         this.add(this.pattern, fillX());
-        this.add(new JLabel(), new CC().wrap());
     }
 
     public void initValue() {
@@ -86,9 +83,5 @@ public class ServerItemUi extends JPanel {
         this.serverConfig.sererPort = StringUtils.isEmpty(serverPort.getValue()) ? null : serverPort.getValue();
         this.serverConfig.pattern = StringUtils.isEmpty(pattern.getValue()) ? null : pattern.getValue();
         return this.serverConfig;
-    }
-
-    public boolean isDelete() {
-        return delete;
     }
 }

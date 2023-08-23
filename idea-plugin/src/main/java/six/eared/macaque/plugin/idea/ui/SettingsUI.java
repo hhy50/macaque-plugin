@@ -8,6 +8,7 @@ import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +32,7 @@ public class SettingsUI {
             for (ServerConfig server : settings.getState().servers) {
                 ServerItemUi serverItemUi = new ServerItemUi(this.index++, (ServerConfig) server.clone());
                 this.servers.add(serverItemUi);
-                this.serversPanel.add(serverItemUi, fillX());
-                this.serversPanel.add(new JPanel(), new CC().wrap());
+                this.addServerConfig(serverItemUi);
             }
             this.betaConfig = (BetaConfig) settings.getState().betaConfig.clone();
         }
@@ -43,8 +43,7 @@ public class SettingsUI {
             boolean existLocal = this.servers.stream().anyMatch(item -> item.getPanelConfig().mode.equals(ServerMode.LOCAL));
             ServerItemUi serverItemUi = new ServerItemUi(this.index++, new ServerConfig(existLocal ? ServerMode.SERVER : ServerMode.LOCAL));
             this.servers.add(serverItemUi);
-            this.serversPanel.add(serverItemUi, fillX());
-            this.serversPanel.add(new JPanel(), new CC().wrap());
+            this.addServerConfig(serverItemUi);
         });
 
         UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
@@ -59,17 +58,35 @@ public class SettingsUI {
         UiUtil.fillY(panelContainer);
     }
 
+    private void addServerConfig(ServerItemUi serverItemUi) {
+        JPanel wrap1 = new JPanel();
+        JPanel wrap2 = new JPanel();
+        this.serversPanel.add(serverItemUi, fillX());
+        this.serversPanel.add(wrap1, new CC().wrap());
+        this.serversPanel.add(creatRemoveBtn(serverItemUi, wrap1, wrap2));
+        this.serversPanel.add(wrap2, new CC().wrap());
+    }
+
+    private Component creatRemoveBtn(ServerItemUi serverItemUi, Component... wraps) {
+        JButton remove = new JButton("Remove");
+        remove.addActionListener(e -> {
+            this.servers.remove(serverItemUi);
+            this.serversPanel.remove(serverItemUi);
+            for (Component wrap : wraps) {
+                this.serversPanel.remove(wrap);
+            }
+            this.serversPanel.remove(remove);
+        });
+        return remove;
+    }
+
     public JPanel showPanel() {
         return panelContainer;
     }
 
     public Settings.State getPanelConfig() {
-
         List<ServerConfig> panelServerConfigs = new ArrayList<>();
         for (ServerItemUi server : servers) {
-            if (server.isDelete()) {
-                continue;
-            }
             ServerConfig panelConfig = server.getPanelConfig();
             panelServerConfigs.add((ServerConfig) panelConfig.clone());
         }
