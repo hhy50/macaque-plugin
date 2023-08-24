@@ -4,7 +4,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBRadioButton;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
@@ -46,13 +45,11 @@ public class UiUtil {
     public static EditorTextField addInputBox(JPanel container, String labelName) {
         JPanel inner = new JPanel(createMigLayout());
 
-
         JLabel jLabel = new JLabel(labelName);
         jLabel.setPreferredSize(new Dimension(100, 30));
 
         inner.add(jLabel);
         inner.add(new EditorTextField(), fillX());
-
 
         container.add(inner, fillX());
         container.add(new JLabel(), new CC().wrap());
@@ -108,30 +105,6 @@ public class UiUtil {
         return comboBox;
     }
 
-    /**
-     * 添加单选框-模式选择
-     * @param container
-     * @return
-     */
-    public static JBRadioButton[] addModeChangeRadio(JPanel container){
-        ButtonGroup group = new ButtonGroup();
-
-        JBRadioButton localMode = new JBRadioButton();
-        localMode.setText("Local");
-
-        JBRadioButton remoteMode = new JBRadioButton();
-        remoteMode.setText("Remote");
-        group.add(localMode);
-        group.add(remoteMode);
-
-        container.add(new JLabel("Plugin Mode"));
-        container.add(localMode);
-        container.add(remoteMode, fillX());
-        container.add(new JLabel(), new CC().wrap());
-        localMode.setSelected(true);
-
-        return new JBRadioButton []{localMode,remoteMode};
-    }
 
     public static void addButton(JPanel container, JButton button, Consumer<ActionEvent> accept) {
         button.addActionListener(accept::accept);

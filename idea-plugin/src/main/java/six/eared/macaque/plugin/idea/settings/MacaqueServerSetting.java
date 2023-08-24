@@ -26,8 +26,8 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
         Settings settings = Settings.getInstance(project);
 
         this.project = project;
-        this.settingsUI = new SettingsUI(settings);
-        WriteCommandAction.runWriteCommandAction(project, () -> this.settingsUI.initValue());
+        this.settingsUI = new SettingsUI();
+        WriteCommandAction.runWriteCommandAction(project, () -> this.settingsUI.initValue(settings.getState()));
     }
 
     @Override
@@ -66,8 +66,8 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
 
     @Override
     public void reset() {
-        Settings settings = Settings.getInstance(project);
-        if (settings != null) {
+        if (isModified()) {
+            Settings settings = Settings.getInstance(project);
             this.settingsUI.reset(settings.getState());
         }
     }

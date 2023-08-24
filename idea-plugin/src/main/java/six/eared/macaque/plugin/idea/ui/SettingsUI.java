@@ -1,6 +1,5 @@
 package six.eared.macaque.plugin.idea.ui;
 
-
 import net.miginfocom.layout.CC;
 import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;
@@ -19,42 +18,25 @@ public class SettingsUI {
 
     private volatile int index = 1;
 
-    private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
-
     private List<ServerItemUi> servers = new ArrayList<>();
 
-    private BetaConfig betaConfig = new BetaConfig();
+    private BetaConfig betaConfig = null;
+
+    private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
 
     private JPanel serversPanel = new JPanel(createMigLayout(4));;
 
-    public SettingsUI(Settings settings) {
-        if (settings != null) {
-            for (ServerConfig server : settings.getState().servers) {
-                ServerItemUi serverItemUi = new ServerItemUi(this.index++, (ServerConfig) server.clone());
-                this.servers.add(serverItemUi);
-                this.addServerConfig(serverItemUi);
-            }
-            this.betaConfig = (BetaConfig) settings.getState().betaConfig.clone();
-        }
+    private JPanel betaPanel = new JPanel(createMigLayout(4));;
 
+    public SettingsUI() {
         UiUtil.addGroup(panelContainer, "Servers", this.serversPanel);
-
-        UiUtil.addButton(panelContainer, new JButton("Add"), (inner) -> {
+        UiUtil.addButton(panelContainer, new JButton("Add"), (event) -> {
             boolean existLocal = this.servers.stream().anyMatch(item -> item.getPanelConfig().mode.equals(ServerMode.LOCAL));
             ServerItemUi serverItemUi = new ServerItemUi(this.index++, new ServerConfig(existLocal ? ServerMode.SERVER : ServerMode.LOCAL));
             this.servers.add(serverItemUi);
             this.addServerConfig(serverItemUi);
         });
-
-        UiUtil.addGroup(panelContainer, "Beta", (inner) -> {
-            addSelectBox(inner, "兼容模式", (checkBox) -> {
-                checkBox.setSelected(this.betaConfig.compatibilityMode);
-                checkBox.addActionListener(event -> {
-                    betaConfig.compatibilityMode = checkBox.isSelected();
-                });
-            });
-        });
-
+        UiUtil.addGroup(panelContainer, "Beta", this.betaPanel);
         UiUtil.fillY(panelContainer);
     }
 
@@ -97,13 +79,26 @@ public class SettingsUI {
         return settings;
     }
 
-    public void initValue() {
-        for (ServerItemUi server : servers) {
-            server.initValue();
+    public void initValue(Settings.State state) {
+        for (ServerConfig server : state.servers) {
+            ServerItemUi serverItemUi = new ServerItemUi(this.index++, (ServerConfig) server.clone());
+            serverItemUi.initValue();
+            this.servers.add(serverItemUi);
+            this.addServerConfig(serverItemUi);
         }
+        this.betaConfig = (BetaConfig) state.betaConfig.clone();
+        addSelectBox(this.betaPanel, "兼容模式", (checkBox) -> {
+            checkBox.setSelected(this.betaConfig.compatibilityMode);
+            checkBox.addActionListener(event -> {
+                this.betaConfig.compatibilityMode = checkBox.isSelected();
+            });
+        });
     }
 
     public void reset(Settings.State state) {
-
+        this.servers.clear();
+        this.serversPanel.removeAll();
+        this.betaPanel.removeAll();
+        initValue(state);
     }
 }
