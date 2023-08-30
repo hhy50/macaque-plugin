@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-  implementation("six.eared.macaque:macaque-client:1.0")
+  implementation("io.github.haiyanghan:six-eared-macaque-core:1.0.0-SNAPSHOT")
 }
 
 // Configure Gradle IntelliJ Plugin

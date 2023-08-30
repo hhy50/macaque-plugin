@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "idea-plugin"
+rootProject.name = "macaque-plugin"
