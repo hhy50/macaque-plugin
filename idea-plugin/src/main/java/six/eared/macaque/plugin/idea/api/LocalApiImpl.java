@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ public class LocalApiImpl extends ServerApi {
 
         try {
             RmiResult result = macaqueClient.hotswap(Integer.valueOf(pid), new ClassHotSwapRmiData(file.getName(),
-                    "class", FileUtil.loadFileBytes(file)));
+                    "class", FileUtil.loadFileBytes(file), new HashMap<>()));
             if (result.isSuccess()) {
                 Notify.success();
             } else {
