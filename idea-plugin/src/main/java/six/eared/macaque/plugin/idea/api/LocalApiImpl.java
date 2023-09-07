@@ -49,7 +49,8 @@ public class LocalApiImpl extends ServerApi {
                 Notify.error(result.getMessage());
             }
         } catch (Exception e) {
-            Notify.error(e.getMessage());
+            String msg = e.getMessage() == null ? e.toString() : e.getMessage();
+            Notify.error(msg);
         }
     }
 

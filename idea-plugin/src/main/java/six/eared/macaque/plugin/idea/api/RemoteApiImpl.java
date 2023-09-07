@@ -38,7 +38,7 @@ public class RemoteApiImpl extends ServerApi {
                 if (response.isSuccess()) {
                     Notify.success("success");
                 } else {
-                    Notify.error("remote hot-swap failed.");
+                    Notify.error("remote hot-swap failed. msg=" + response.getMessage());
                 }
             });
         } catch (Exception e) {
