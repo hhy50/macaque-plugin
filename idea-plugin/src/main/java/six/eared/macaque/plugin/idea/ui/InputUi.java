@@ -4,6 +4,8 @@ package six.eared.macaque.plugin.idea.ui;
 import com.intellij.ui.EditorTextField;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 
 import java.awt.*;
 
@@ -25,9 +27,14 @@ public class InputUi extends JPanel {
         this.textField = new EditorTextField(value);
         this.add(createEqualWidthLabel(name));
         this.add(textField, fillX());
+        backupBorder = this.textField.getBorder();
     }
-    public void setTextFieldBackground(Color c){
-        this.textField.setBackground(c);
+    public void setTextFieldBorder(Color c){
+        textField.setBorder(new LineBorder(c));
+    }
+    private Border backupBorder;
+    public void resetTextFieldBorder(){
+        textField.setBorder(backupBorder);
     }
     public String getName() {
         return this.name;

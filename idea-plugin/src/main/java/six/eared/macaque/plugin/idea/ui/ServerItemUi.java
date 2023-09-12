@@ -87,25 +87,21 @@ public class ServerItemUi extends JPanel {
         this.serverConfig.pattern = StringUtils.isEmpty(pattern.getValue()) ? null : pattern.getValue();
         return this.serverConfig;
     }
-    private  Color color = new Color(240,192,203);
     private void checkItem(InputUi ui,java.util.List error) {
         boolean isEmpty = StringUtils.isEmpty(ui.getValue());
         if(isEmpty){
             ui.requestFocus();
-            ui.setTextFieldBackground(color);
+            ui.setTextFieldBorder(Color.RED);
             error.add(ui);
         }else{
-            ui.setTextFieldBackground(pattern.getBackground());
+            ui.resetTextFieldBorder();
         }
     }
     public boolean validateAndFocus(){
         java.util.List error = new ArrayList();
         if(ServerMode.SERVER.equals(this.mode.getSelect())){
-            checkItem(serverName,error);
             checkItem(serverHost,error);
             checkItem(serverPort,error);
-        }else{
-            checkItem(serverName,error);
         }
         return error.isEmpty();
     }
