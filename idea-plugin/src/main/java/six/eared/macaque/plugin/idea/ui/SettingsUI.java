@@ -1,5 +1,6 @@
 package six.eared.macaque.plugin.idea.ui;
 
+import com.intellij.openapi.ui.Messages;
 import net.miginfocom.layout.CC;
 import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;
@@ -100,5 +101,18 @@ public class SettingsUI {
         this.serversPanel.removeAll();
         this.betaPanel.removeAll();
         initValue(state);
+    }
+
+    /**
+     * 校验数据填写
+     * @return
+     */
+    public boolean validate(){
+        boolean allPassed = true;
+        for (ServerItemUi server :servers) {
+            boolean passed = server.validateAndFocus();
+            if(!passed) allPassed = false;
+        }
+        return allPassed;
     }
 }

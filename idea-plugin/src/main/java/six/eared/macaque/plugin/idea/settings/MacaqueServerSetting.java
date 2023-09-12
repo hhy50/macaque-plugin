@@ -4,6 +4,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +59,13 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     @Override
     public void apply() {
         if (isModified()) {
-            ServerApiFactory.clear();
-            Settings.cover(project, settingsUI.getPanelConfig());
-            Executors.submit(() -> JpsHolder.refresh(project));
+            if(settingsUI.validate()){
+                ServerApiFactory.clear();
+                Settings.cover(project, settingsUI.getPanelConfig());
+                Executors.submit(() -> JpsHolder.refresh(project));
+            }else{
+                Messages.showMessageDialog("Please fill the highlighted fileds","Error",Messages.getErrorIcon());
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import com.intellij.ui.EditorTextField;
 
 import javax.swing.*;
 
+import java.awt.*;
+
 import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
 public class InputUi extends JPanel {
@@ -21,11 +23,12 @@ public class InputUi extends JPanel {
         super(createMigLayout());
         this.name = name;
         this.textField = new EditorTextField(value);
-
         this.add(createEqualWidthLabel(name));
         this.add(textField, fillX());
     }
-
+    public void setTextFieldBackground(Color c){
+        this.textField.setBackground(c);
+    }
     public String getName() {
         return this.name;
     }
