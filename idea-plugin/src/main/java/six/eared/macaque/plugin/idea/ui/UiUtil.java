@@ -119,7 +119,6 @@ public class UiUtil {
     public static JLabel createEqualWidthLabel(String name) {
         JLabel label = new JLabel(name);
         label.setPreferredSize(new Dimension(100, 30));
-
         return label;
     }
 }

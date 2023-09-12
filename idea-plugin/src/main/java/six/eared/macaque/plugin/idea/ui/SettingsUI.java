@@ -1,6 +1,5 @@
 package six.eared.macaque.plugin.idea.ui;
 
-import com.intellij.openapi.ui.Messages;
 import net.miginfocom.layout.CC;
 import six.eared.macaque.plugin.idea.common.ServerMode;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;

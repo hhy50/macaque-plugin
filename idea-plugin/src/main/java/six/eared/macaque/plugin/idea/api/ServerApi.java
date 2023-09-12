@@ -2,11 +2,16 @@ package six.eared.macaque.plugin.idea.api;
 
 import com.intellij.openapi.project.Project;
 import org.apache.commons.lang.StringUtils;
+import six.eared.macaque.common.ExtPropertyName;
+import six.eared.macaque.common.util.FileUtil;
+import six.eared.macaque.plugin.idea.settings.BetaConfig;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -35,20 +40,40 @@ public abstract class ServerApi {
                 }).collect(Collectors.toList());
     }
 
-    public void redefine(File file, String pid) {
+    public void redefineFile(String fileType, File file, String pid) {
         ClassLoader origin = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(ServerApi.class.getClassLoader());
         try {
-            doRedefine(file, pid);
+            doRedefine(pid, file.getName(), fileType, FileUtil.readBytes(file.getPath()));
         } finally {
             Thread.currentThread().setContextClassLoader(origin);
         }
     }
 
+    public void redefineClass(byte[] bytes, String pid) {
+        ClassLoader origin = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ServerApi.class.getClassLoader());
+        try {
+            doRedefine(pid, null, "class", bytes);
+        } finally {
+            Thread.currentThread().setContextClassLoader(origin);
+        }
+    }
+
+    public Map<String, String> getExtProperties() {
+        Map<String, String> extProp = new HashMap<>();
+        Settings.State state = Settings.getInstance(project).getState();
+        BetaConfig betaConfig = state.betaConfig;
+
+        extProp.put(ExtPropertyName.MODE, state.getServerConfig(serverUnique).mode);
+        extProp.put(ExtPropertyName.COMPATIBILITY_MODE, Boolean.toString(betaConfig.compatibilityMode));
+        return extProp;
+    }
+
     /**
      * 替换包
      */
-    protected abstract void doRedefine(File file, String pid);
+    protected abstract void doRedefine(String pid, String fileName, String fileType, byte[] bytes);
 
     /**
      * 获取jps进程信息

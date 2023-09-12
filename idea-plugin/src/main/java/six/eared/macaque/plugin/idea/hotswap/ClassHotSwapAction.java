@@ -12,6 +12,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.task.ProjectTaskManager;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.concurrency.Promise;
+import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.plugin.idea.api.ServerApi;
 import six.eared.macaque.plugin.idea.builder.CompileOptions;
 import six.eared.macaque.plugin.idea.builder.CompilerPaths;
@@ -24,6 +25,8 @@ import java.io.File;
 import java.util.function.BiFunction;
 
 public class ClassHotSwapAction extends AnAction {
+
+    private static final String SECOND_CONFIRM_MSG = "This operation will replace the class already loaded in the target process";
 
     private ServerApi serverApi;
 
@@ -45,7 +48,7 @@ public class ClassHotSwapAction extends AnAction {
             if (psiFile.getFileType().getName().equalsIgnoreCase("JAVA")) {
                 stepCompile(psiFile);
             } else {
-                redefine(new File(psiFile.getVirtualFile().getPath()));
+                redefineFile(psiFile);
             }
         }
     }
@@ -62,7 +65,7 @@ public class ClassHotSwapAction extends AnAction {
             handler.apply(builder, psiFile)
                     .onSuccess(result -> {
                         if (!result.hasErrors()) {
-                            redefine(getCompiledClassFile(psiFile));
+                            redefine(getCompiledClassData(psiFile));
                         }
                     })
                     .onError(error -> {
@@ -73,13 +76,26 @@ public class ClassHotSwapAction extends AnAction {
         }
     }
 
-    public void redefine(File file) {
-        int confirm = Messages.showYesNoCancelDialog(
-                "This operation will replace the class already loaded in the target process",
+    public void redefine(byte[] bytes) {
+        int confirm = Messages.showYesNoCancelDialog(SECOND_CONFIRM_MSG,
                 "Warning", null);
         if (confirm == 0) {
-            Executors.submit(() -> serverApi.redefine(file, pid));
+            Executors.submit(() -> serverApi.redefineClass(bytes, pid));
         }
+    }
+
+    public void redefineFile(PsiFile file) {
+        int confirm = Messages.showYesNoCancelDialog(SECOND_CONFIRM_MSG,
+                "Warning", null);
+        if (confirm == 0) {
+            Executors.submit(() -> serverApi.redefineFile(file.getFileType().getName().toLowerCase(), new File(file.getVirtualFile().getPath()), pid));
+        }
+    }
+
+    public byte[] getCompiledClassData(PsiFile psiFile) {
+        // TODO 获取子类的class文件，然后merger一下
+        File compiledClassFile = getCompiledClassFile(psiFile);
+        return FileUtil.readBytes(compiledClassFile.getPath());
     }
 
     public File getCompiledClassFile(PsiFile psiFile) {

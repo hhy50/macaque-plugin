@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "six.eared.macaque.plugin"
-version = "1.1"
+version = "1.3"
 
 repositories {
   mavenLocal()
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-  implementation("io.github.haiyanghan:six-eared-macaque-core:1.0.2-SNAPSHOT")
+  implementation("io.github.haiyanghan:six-eared-macaque-core:1.0.3-SNAPSHOT")
 }
 
 // Configure Gradle IntelliJ Plugin

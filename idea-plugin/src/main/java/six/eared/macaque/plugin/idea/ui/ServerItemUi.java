@@ -8,9 +8,6 @@ import six.eared.macaque.plugin.idea.settings.ServerConfig;
 
 import javax.swing.*;
 
-import java.awt.*;
-import java.util.ArrayList;
-
 import static six.eared.macaque.plugin.idea.ui.UiUtil.createMigLayout;
 import static six.eared.macaque.plugin.idea.ui.UiUtil.fillX;
 
@@ -45,19 +42,27 @@ public class ServerItemUi extends JPanel {
     }
 
     private void resetUi(String currentMode) {
+        this.serverHost.reset();
+        this.serverPort.reset();
         this.removeAll();
+
+        boolean serverMode = ServerMode.SERVER.equals(currentMode);
 
         this.add(this.mode, fillX());
         this.add(new JLabel(), new CC().wrap());
         this.add(this.serverName, fillX());
         this.add(new JLabel(), new CC().wrap());
-        if (currentMode.equals(ServerMode.SERVER)) {
+
+        if (serverMode) {
             this.add(this.serverHost, fillX());
             this.add(new JLabel(), new CC().wrap());
             this.add(this.serverPort, fillX());
             this.add(new JLabel(), new CC().wrap());
         }
         this.add(this.pattern, fillX());
+
+        this.serverHost.setRequired(serverMode);
+        this.serverPort.setRequired(serverMode);
     }
 
     public void initValue() {
@@ -87,22 +92,19 @@ public class ServerItemUi extends JPanel {
         this.serverConfig.pattern = StringUtils.isEmpty(pattern.getValue()) ? null : pattern.getValue();
         return this.serverConfig;
     }
-    private void checkItem(InputUi ui,java.util.List error) {
-        boolean isEmpty = StringUtils.isEmpty(ui.getValue());
-        if(isEmpty){
-            ui.requestFocus();
-            ui.setTextFieldBorder(Color.RED);
-            error.add(ui);
-        }else{
-            ui.resetTextFieldBorder();
-        }
-    }
-    public boolean validateAndFocus(){
-        java.util.List error = new ArrayList();
-        if(ServerMode.SERVER.equals(this.mode.getSelect())){
-            checkItem(serverHost,error);
-            checkItem(serverPort,error);
-        }
-        return error.isEmpty();
+//    private void checkItem(InputUi ui,java.util.List error) {
+//        boolean isEmpty = StringUtils.isEmpty(ui.getValue());
+//        if(isEmpty){
+//            ui.requestFocus();
+//            ui.setTextFieldBorder(Color.RED);
+//            error.add(ui);
+//        }else{
+//            ui.resetTextFieldBorder();
+//        }
+//    }
+
+    public boolean validateAndFocus() {
+        return serverHost.checkRequired()
+                & serverPort.checkRequired();
     }
 }

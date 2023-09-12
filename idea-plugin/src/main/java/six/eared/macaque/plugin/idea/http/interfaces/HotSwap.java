@@ -6,6 +6,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.StringBody;
+import six.eared.macaque.common.util.StringUtil;
 import six.eared.macaque.plugin.idea.config.RequestUrl;
 import six.eared.macaque.plugin.idea.http.request.BaseRequest;
 import six.eared.macaque.plugin.idea.http.response.CommonResponse;
@@ -33,13 +34,17 @@ public class HotSwap extends BaseRequest<CommonResponse> {
 
     @Override
     protected MultipartEntityBuilder entityBuild() {
-        return MultipartEntityBuilder.create()
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
                 .setCharset(StandardCharsets.UTF_8)
                 .setContentType(ContentType.MULTIPART_FORM_DATA)
                 .addPart("fileData", new ByteArrayBody(fileData, fileName))
-                .addPart("fileName", new StringBody(fileName, ContentType.TEXT_PLAIN))
                 .addPart("pid", new StringBody(pid, ContentType.TEXT_PLAIN))
                 .addPart("fileType", new StringBody(fileType, ContentType.TEXT_PLAIN));
+
+        if (StringUtil.isNotEmpty(fileName)) {
+            entityBuilder.addPart("fileName", new StringBody(fileName, ContentType.TEXT_PLAIN));
+        }
+        return entityBuilder;
     }
 
     public void setFileName(String fileName) {

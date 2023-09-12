@@ -59,12 +59,12 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
     @Override
     public void apply() {
         if (isModified()) {
-            if(settingsUI.validate()){
+            if (settingsUI.validate()) {
                 ServerApiFactory.clear();
                 Settings.cover(project, settingsUI.getPanelConfig());
                 Executors.submit(() -> JpsHolder.refresh(project));
-            }else{
-                Messages.showMessageDialog("Please fill the highlighted fileds","Error",Messages.getErrorIcon());
+            } else {
+                Messages.showMessageDialog("Please fill the highlighted fileds", "Error", Messages.getErrorIcon());
             }
         }
     }

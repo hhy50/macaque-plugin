@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
 
 public class CompileOptions {
 
-    public final static String[] OPTIONS = {"Use Compiled", "Recompile", "Rebuild project"};
+    public final static String[] OPTIONS = {"Use Compiled", "Recompile", "Rebuild Project"};
 
     public static final int DEFAULT = 1;
 

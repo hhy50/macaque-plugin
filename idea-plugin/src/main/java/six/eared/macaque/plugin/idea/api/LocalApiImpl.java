@@ -5,8 +5,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.core.client.MacaqueClient;
 import six.eared.macaque.core.jps.JavaProcessHolder;
-import six.eared.macaque.mbean.rmi.ClassHotSwapRmiData;
+import six.eared.macaque.mbean.rmi.HotSwapRmiData;
 import six.eared.macaque.mbean.rmi.RmiResult;
+import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
 
@@ -15,8 +16,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class LocalApiImpl extends ServerApi {
@@ -33,16 +34,15 @@ public class LocalApiImpl extends ServerApi {
     /**
      * 替换包
      */
-    public void doRedefine(File file, String pid) {
+    public void doRedefine(String pid, String fileName, String fileType, byte[] bytes) {
         if (JpsHolder.getInstance(project).getState().getProcess(serverUnique)
                 .stream().noneMatch(item -> item.pid.equals(pid))) {
             Notify.error(String.format("pid '%s' does not exist", pid));
             return;
         }
-
         try {
-            RmiResult result = macaqueClient.hotswap(Integer.valueOf(pid), new ClassHotSwapRmiData(file.getName(),
-                    "class", FileUtil.loadFileBytes(file), new HashMap<>()));
+            Map<String, String> property = getExtProperties();
+            RmiResult result = macaqueClient.hotswap(Integer.valueOf(pid), new HotSwapRmiData(fileName, fileType, bytes, property));
             if (result.isSuccess()) {
                 Notify.success();
             } else {
@@ -81,8 +81,14 @@ public class LocalApiImpl extends ServerApi {
         URL resource = LocalApiImpl.class.getClassLoader().getResource("lib/macaque-agent.jar");
         if (resource != null) {
             try {
-                File tmp = new File(System.getProperty("java.io.tmpdir") + File.separator + "macaque-agent.jar");
+                File tmp = new File(System.getProperty("java.io.tmpdir")
+                        + File.separator + "macaque-plugin"
+                        + File.separator + PluginInfo.VERSION
+                        + File.separator + "macaque-agent.jar");
                 if (!tmp.exists()) {
+                    if (!tmp.getParentFile().exists()) {
+                        tmp.getParentFile().mkdirs();
+                    }
                     FileUtil.copy(resource.openStream(), new FileOutputStream(tmp));
                 }
                 return tmp.getPath();
