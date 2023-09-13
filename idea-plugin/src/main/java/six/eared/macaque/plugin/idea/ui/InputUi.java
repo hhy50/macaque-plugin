@@ -8,6 +8,8 @@ import six.eared.macaque.common.util.StringUtil;
 import javax.swing.*;
 import javax.swing.border.Border;
 
+import java.awt.*;
+
 import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
 
 public class InputUi extends JPanel {
@@ -23,7 +25,7 @@ public class InputUi extends JPanel {
     public InputUi(String name) {
         this(name, "");
     }
-
+    private JLabel errMsgLabel = null;
     public InputUi(String name, String value) {
         super(createMigLayout());
         this.name = name;
@@ -31,6 +33,11 @@ public class InputUi extends JPanel {
         this.label = createEqualWidthLabel(name);
         this.add(this.label);
         this.add(this.textField, fillX());
+
+        errMsgLabel = new JLabel("");
+        errMsgLabel.setPreferredSize(new Dimension(100, 30));
+        errMsgLabel.setForeground(Color.red);
+        this.add(errMsgLabel);
     }
 
     public String getName() {
@@ -52,12 +59,10 @@ public class InputUi extends JPanel {
     public boolean checkRequired() {
         if (this.required) {
             if (StringUtil.isEmpty(getValue())) {
-                Border roundedBorder = BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(JBColor.RED),
-                        BorderFactory.createEmptyBorder(2, 5, 2, 5)
-                );
-                this.textField.setBorder(roundedBorder);
+                errMsgLabel.setText("* required");
                 return false;
+            }else{
+                errMsgLabel.setText("");
             }
         }
         return true;
