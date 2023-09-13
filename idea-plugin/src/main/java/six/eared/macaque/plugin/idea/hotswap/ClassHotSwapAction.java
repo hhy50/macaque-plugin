@@ -116,7 +116,11 @@ public class ClassHotSwapAction extends AnAction {
             if (sourceRoot != null) {
                 String relative = javaFilePath.substring(sourceRoot.length());
                 String classFileName = psiFile.getName().split("\\.")[0] + ".class";
-                return new File(moduleOutputPath, relative + File.separator + classFileName);
+                File compiledClassFile = new File(moduleOutputPath, relative + File.separator + classFileName);
+                if (!compiledClassFile.exists()) {
+                    throw new RuntimeException("file '" + compiledClassFile.getPath() + "' not found");
+                }
+                return compiledClassFile;
             }
         }
         return null;

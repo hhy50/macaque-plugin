@@ -30,7 +30,7 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <description><![CDATA[
             <p>适用于从本地热替换class到服务器</p>
-            github: <a href="https://github.com/haiyanghan/macaque-hot-swap">@Macaque Plugin</a>
+            github: <a href="https://github.com/haiyanghan/macaque-hotswap">@Macaque Plugin</a>
             <br />
             qq群: 904726708
       ]]>
