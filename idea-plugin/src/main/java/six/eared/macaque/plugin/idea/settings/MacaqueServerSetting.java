@@ -64,7 +64,7 @@ public class MacaqueServerSetting implements SearchableConfigurable, Configurabl
                 Settings.cover(project, settingsUI.getPanelConfig());
                 Executors.submit(() -> JpsHolder.refresh(project));
             } else {
-                Messages.showMessageDialog("Please fill the highlighted fileds", "Error", Messages.getErrorIcon());
+                Messages.showMessageDialog("Please fill the highlighted fields", "Error", Messages.getErrorIcon());
             }
         }
     }
