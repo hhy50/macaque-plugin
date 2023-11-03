@@ -12,11 +12,17 @@ public class BetaConfig extends Config {
      */
     public boolean compatibilityMode;
 
+
+    /**
+     * 远程编译
+     */
+    public boolean remoteCompile;
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof BetaConfig) {
             BetaConfig to = (BetaConfig) o;
-            return Objects.equals(this.compatibilityMode, to.compatibilityMode);
+            return Objects.equals(this.compatibilityMode, to.compatibilityMode) && Objects.equals(this.remoteCompile, to.remoteCompile);
         }
         return false;
     }

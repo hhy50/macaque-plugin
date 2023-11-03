@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
+import static six.eared.macaque.plugin.idea.ui.UiUtil.createMigLayoutVertical;
 
 
 public class SettingsUI {
@@ -24,9 +25,9 @@ public class SettingsUI {
 
     private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
 
-    private JPanel serversPanel = new JPanel(createMigLayout(4));;
+    private JPanel serversPanel = new JPanel(createMigLayout(4));
 
-    private JPanel betaPanel = new JPanel(createMigLayout(4));;
+    private JPanel betaPanel = new JPanel();
 
     public SettingsUI() {
         UiUtil.addGroup(panelContainer, "Servers", this.serversPanel);
@@ -36,7 +37,7 @@ public class SettingsUI {
             this.servers.add(serverItemUi);
             this.addServerConfig(serverItemUi);
         });
-        UiUtil.addGroup(panelContainer, "Beta", this.betaPanel);
+        UiUtil.addBetaConfigGroup(panelContainer, "Beta", this.betaPanel);
         UiUtil.fillY(panelContainer);
     }
 
@@ -93,6 +94,12 @@ public class SettingsUI {
                 this.betaConfig.compatibilityMode = checkBox.isSelected();
             });
         });
+        addSelectBox(this.betaPanel, "远程编译", (checkBox) -> {
+            checkBox.setSelected(this.betaConfig.remoteCompile);
+            checkBox.addActionListener(event -> {
+                this.betaConfig.remoteCompile = checkBox.isSelected();
+            });
+        });
     }
 
     public void reset(Settings.State state) {
@@ -108,7 +115,7 @@ public class SettingsUI {
      */
     public boolean validate(){
         boolean allPassed = true;
-        for (ServerItemUi server :servers) {
+        for (ServerItemUi server : servers) {
             boolean passed = server.validateAndFocus();
             if(!passed) allPassed = false;
         }

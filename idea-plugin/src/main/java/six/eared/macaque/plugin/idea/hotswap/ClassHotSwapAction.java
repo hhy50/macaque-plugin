@@ -19,6 +19,7 @@ import six.eared.macaque.plugin.idea.builder.CompilerPaths;
 import six.eared.macaque.plugin.idea.builder.NomalProjectBuilder;
 import six.eared.macaque.plugin.idea.builder.ProjectBuilder;
 import six.eared.macaque.plugin.idea.notify.Notify;
+import six.eared.macaque.plugin.idea.settings.Settings;
 import six.eared.macaque.plugin.idea.thread.Executors;
 
 import java.io.File;
@@ -46,7 +47,12 @@ public class ClassHotSwapAction extends AnAction {
         PsiFile psiFile = event.getDataContext().getData(CommonDataKeys.PSI_FILE);
         if (psiFile != null) {
             if (psiFile.getFileType().getName().equalsIgnoreCase("JAVA")) {
-                stepCompile(psiFile);
+                Settings.State state = Settings.getInstance(event.getProject()).getState();
+                if (state.betaConfig.remoteCompile) {
+                    redefineFile(psiFile);
+                } else {
+                    stepCompile(psiFile);
+                }
             } else {
                 redefineFile(psiFile);
             }

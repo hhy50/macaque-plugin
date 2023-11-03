@@ -37,6 +37,13 @@ public class UiUtil {
         container.add(group, fillX());
     }
 
+    public static void addBetaConfigGroup(JPanel container, String groupName, JPanel inner) {
+        JPanel group = new JPanel();
+        group.setBorder(IdeBorderFactory.createTitledBorder(groupName));
+        group.add(inner, fillX());
+        container.add(group);
+    }
+
     /**
      * 增加输入框
      *
@@ -66,9 +73,9 @@ public class UiUtil {
 
     public static JBCheckBox addSelectBox(JPanel container, String selectName, Consumer<JBCheckBox> consumer) {
         JBCheckBox checkBox = new JBCheckBox(selectName);
+        checkBox.setSize(100, 30);
         consumer.accept(checkBox);
-
-        container.add(checkBox, new CC().wrap());
+        container.add(checkBox);
         return checkBox;
     }
 
@@ -77,8 +84,7 @@ public class UiUtil {
     }
 
     public static MigLayout createMigLayout(int gapx) {
-        return createMigLayout(gapx + "px",
-                "0!", "0");
+        return createMigLayout(gapx + "px", "0!", "0");
     }
 
     public static MigLayout createMigLayout(String gapx, String gapy, String inset) {
