@@ -83,7 +83,7 @@ public class LocalApiImpl extends ServerApi {
             try {
                 File tmp = new File(System.getProperty("java.io.tmpdir")
                         + File.separator + "macaque-plugin"
-                        + File.separator + PluginInfo.VERSION
+                        + File.separator + PluginInfo.AGENT_VERSION
                         + File.separator + "macaque-agent.jar");
                 if (!tmp.exists()) {
                     if (!tmp.getParentFile().exists()) {
