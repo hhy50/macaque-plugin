@@ -23,6 +23,7 @@ import six.eared.macaque.plugin.idea.settings.Settings;
 import six.eared.macaque.plugin.idea.thread.Executors;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.function.BiFunction;
 
 public class ClassHotSwapAction extends AnAction {
@@ -94,7 +95,13 @@ public class ClassHotSwapAction extends AnAction {
         int confirm = Messages.showYesNoCancelDialog(SECOND_CONFIRM_MSG,
                 "Warning", null);
         if (confirm == 0) {
-            Executors.submit(() -> serverApi.redefineFile(file.getFileType().getName().toLowerCase(), new File(file.getVirtualFile().getPath()), pid));
+            Executors.submit(() -> {
+                try {
+                    serverApi.redefineFile(file.getVirtualFile(), pid);
+                } catch (IOException e) {
+                    Notify.error(e.getMessage());
+                }
+            });
         }
     }
 

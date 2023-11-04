@@ -1,14 +1,17 @@
 package six.eared.macaque.plugin.idea.api;
 
+import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.apache.commons.lang.StringUtils;
 import six.eared.macaque.common.ExtPropertyName;
-import six.eared.macaque.common.util.FileUtil;
 import six.eared.macaque.plugin.idea.settings.BetaConfig;
 import six.eared.macaque.plugin.idea.settings.ServerConfig;
 import six.eared.macaque.plugin.idea.settings.Settings;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +43,16 @@ public abstract class ServerApi {
                 }).collect(Collectors.toList());
     }
 
-    public void redefineFile(String fileType, File file, String pid) {
+    public void redefineFile(VirtualFile file, String pid) throws IOException {
         ClassLoader origin = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(ServerApi.class.getClassLoader());
         try {
-            doRedefine(pid, file.getName(), fileType, FileUtil.readBytes(file.getPath()));
+            TransactionGuard.getInstance().submitTransactionAndWait(
+                    () -> FileDocumentManager.getInstance().saveAllDocuments()
+            );
+            doRedefine(pid, file.getName(), file.getFileType().getName().toLowerCase(), VfsUtil.loadBytes(file));
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             Thread.currentThread().setContextClassLoader(origin);
         }
@@ -77,7 +85,6 @@ public abstract class ServerApi {
 
     /**
      * 获取jps进程信息
-     *
      */
     public abstract List<ProcessItem> getJavaProcess();
 
