@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "six.eared.macaque.plugin"
-version = "1.3"
+version = "1.4"
 
 repositories {
   mavenLocal()
