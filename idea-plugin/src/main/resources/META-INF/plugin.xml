@@ -29,9 +29,17 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <description><![CDATA[
+        <p>Suitable for hot swapping classes from local to server</p>
+        <p>Usage: Right click on the Java class in the editing panel and select the specified process in the remote server to replace the class in memory</p>
+        <p>Usage requirements: A remote server needs to be deployed</p>
+    <hr/>
             <p>适用于从本地热替换class到服务器</p>
-            github: <a href="https://github.com/haiyanghan/macaque-hotswap">@Macaque Plugin</a>
+            <p>使用方式:
+                    在编辑面板中右击Java类选择远程服务器中的指定进程去替换内存中的类</p>
             <br />
+            <p>使用要求: 需要部署一个远程服务端, 在下面的github地址中去下载最新版服务端</p>
+            <p>github: <a href="https://github.com/haiyanghan/macaque-hotswap">@Macaque Plugin</a></p>
+
             qq群: 904726708
       ]]>
     </description>
