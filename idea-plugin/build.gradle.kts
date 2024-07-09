@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-  implementation("io.github.haiyanghan:six-eared-macaque-core:1.0.3-SNAPSHOT")
+  implementation("io.github.haiyanghan:six-eared-macaque-core:1.1.0-SNAPSHOT")
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -42,7 +42,7 @@ tasks {
   patchPluginXml {
     version.set(project.version.toString())
     sinceBuild.set("211")
-    untilBuild.set("*.*")
+    untilBuild.set("251")
   }
 }
 
