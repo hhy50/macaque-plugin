@@ -18,11 +18,18 @@ public class BetaConfig extends Config {
      */
     public boolean remoteCompile;
 
+    /**
+     * agent path
+     */
+    public String agentPath = "";
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof BetaConfig) {
             BetaConfig to = (BetaConfig) o;
-            return Objects.equals(this.compatibilityMode, to.compatibilityMode) && Objects.equals(this.remoteCompile, to.remoteCompile);
+            return Objects.equals(this.compatibilityMode, to.compatibilityMode)
+                    && Objects.equals(this.agentPath, to.agentPath)
+                    && Objects.equals(this.remoteCompile, to.remoteCompile);
         }
         return false;
     }

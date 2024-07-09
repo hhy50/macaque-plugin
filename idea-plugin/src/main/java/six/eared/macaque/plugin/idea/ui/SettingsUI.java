@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static six.eared.macaque.plugin.idea.ui.UiUtil.*;
-import static six.eared.macaque.plugin.idea.ui.UiUtil.createMigLayoutVertical;
 
 
 public class SettingsUI {
@@ -21,27 +20,25 @@ public class SettingsUI {
 
     private List<ServerItemUi> servers = new ArrayList<>();
 
-    private BetaConfig betaConfig = null;
-
     private final JPanel panelContainer = new JPanel(createMigLayoutVertical());
 
     private JPanel serversPanel = new JPanel(createMigLayout(4));
 
-    private JPanel betaPanel = new JPanel();
+    private BetaUi betaPanel = new BetaUi();
 
     public SettingsUI() {
         UiUtil.addGroup(panelContainer, "Servers", this.serversPanel);
         UiUtil.addButton(panelContainer, new JButton("Add"), (event) -> {
             boolean existLocal = this.servers.stream().anyMatch(item -> item.getPanelConfig().mode.equals(ServerMode.LOCAL));
             ServerItemUi serverItemUi = new ServerItemUi(this.index++, new ServerConfig(existLocal ? ServerMode.SERVER : ServerMode.LOCAL));
+            this.addServerUi(serverItemUi);
             this.servers.add(serverItemUi);
-            this.addServerConfig(serverItemUi);
         });
         UiUtil.addBetaConfigGroup(panelContainer, "Beta", this.betaPanel);
         UiUtil.fillY(panelContainer);
     }
 
-    private void addServerConfig(ServerItemUi serverItemUi) {
+    private void addServerUi(ServerItemUi serverItemUi) {
         JPanel wrap1 = new JPanel();
         JPanel wrap2 = new JPanel();
         this.serversPanel.add(serverItemUi, fillX());
@@ -76,7 +73,7 @@ public class SettingsUI {
 
         Settings.State settings = new Settings.State();
         settings.servers = panelServerConfigs;
-        settings.betaConfig = (BetaConfig) betaConfig.clone();
+        settings.betaConfig = this.betaPanel.getConfig();
         return settings;
     }
 
@@ -84,28 +81,16 @@ public class SettingsUI {
         for (ServerConfig server : state.servers) {
             ServerItemUi serverItemUi = new ServerItemUi(this.index++, (ServerConfig) server.clone());
             serverItemUi.initValue();
+            this.addServerUi(serverItemUi);
             this.servers.add(serverItemUi);
-            this.addServerConfig(serverItemUi);
         }
-        this.betaConfig = (BetaConfig) state.betaConfig.clone();
-        addSelectBox(this.betaPanel, "兼容模式", (checkBox) -> {
-            checkBox.setSelected(this.betaConfig.compatibilityMode);
-            checkBox.addActionListener(event -> {
-                this.betaConfig.compatibilityMode = checkBox.isSelected();
-            });
-        });
-        addSelectBox(this.betaPanel, "远程编译", (checkBox) -> {
-            checkBox.setSelected(this.betaConfig.remoteCompile);
-            checkBox.addActionListener(event -> {
-                this.betaConfig.remoteCompile = checkBox.isSelected();
-            });
-        });
+        this.betaPanel.init((BetaConfig) state.betaConfig.clone());
     }
 
     public void reset(Settings.State state) {
         this.servers.clear();
         this.serversPanel.removeAll();
-        this.betaPanel.removeAll();
+        this.betaPanel.resetUi();
         initValue(state);
     }
 

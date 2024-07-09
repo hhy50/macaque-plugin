@@ -6,7 +6,6 @@ import com.intellij.ui.JBColor;
 import six.eared.macaque.common.util.StringUtil;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 
 import java.awt.*;
 
@@ -22,10 +21,12 @@ public class InputUi extends JPanel {
 
     private boolean required = false;
 
+    private JLabel errMsgLabel = null;
+
     public InputUi(String name) {
         this(name, "");
     }
-    private JLabel errMsgLabel = null;
+
     public InputUi(String name, String value) {
         super(createMigLayout());
         this.name = name;
@@ -34,10 +35,10 @@ public class InputUi extends JPanel {
         this.add(this.label);
         this.add(this.textField, fillX());
 
-        errMsgLabel = new JLabel("");
-        errMsgLabel.setPreferredSize(new Dimension(100, 30));
-        errMsgLabel.setForeground(Color.red);
-        this.add(errMsgLabel);
+        this.errMsgLabel = new JLabel("");
+        this.errMsgLabel.setPreferredSize(new Dimension(100, 30));
+        this.errMsgLabel.setForeground(Color.red);
+        this.add(this.errMsgLabel);
     }
 
     public String getName() {

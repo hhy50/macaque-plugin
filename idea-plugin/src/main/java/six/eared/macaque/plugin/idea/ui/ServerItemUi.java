@@ -92,16 +92,6 @@ public class ServerItemUi extends JPanel {
         this.serverConfig.pattern = StringUtils.isEmpty(pattern.getValue()) ? null : pattern.getValue();
         return this.serverConfig;
     }
-//    private void checkItem(InputUi ui,java.util.List error) {
-//        boolean isEmpty = StringUtils.isEmpty(ui.getValue());
-//        if(isEmpty){
-//            ui.requestFocus();
-//            ui.setTextFieldBorder(Color.RED);
-//            error.add(ui);
-//        }else{
-//            ui.resetTextFieldBorder();
-//        }
-//    }
 
     public boolean validateAndFocus() {
         return serverHost.checkRequired()

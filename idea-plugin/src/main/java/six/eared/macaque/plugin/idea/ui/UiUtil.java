@@ -44,25 +44,6 @@ public class UiUtil {
         container.add(group);
     }
 
-    /**
-     * 增加输入框
-     *
-     * @param container
-     */
-    public static EditorTextField addInputBox(JPanel container, String labelName) {
-        JPanel inner = new JPanel(createMigLayout());
-
-        JLabel jLabel = new JLabel(labelName);
-        jLabel.setPreferredSize(new Dimension(100, 30));
-
-        inner.add(jLabel);
-        inner.add(new EditorTextField(), fillX());
-
-        container.add(inner, fillX());
-        container.add(new JLabel(), new CC().wrap());
-        return new EditorTextField();
-    }
-
     public static CC fillX() {
         return new CC().growX().pushX();
     }
