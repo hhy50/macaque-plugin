@@ -10,6 +10,8 @@ import six.eared.macaque.mbean.rmi.RmiResult;
 import six.eared.macaque.plugin.idea.PluginInfo;
 import six.eared.macaque.plugin.idea.jps.JpsHolder;
 import six.eared.macaque.plugin.idea.notify.Notify;
+import six.eared.macaque.plugin.idea.settings.BetaConfig;
+import six.eared.macaque.plugin.idea.settings.Settings;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,8 +29,13 @@ public class LocalApiImpl extends ServerApi {
     public LocalApiImpl(Project project, String serverUnique) {
         super(project, serverUnique);
 
+        BetaConfig betaConfig = Settings.getInstance(project).getState().betaConfig;
+        String agentPath = betaConfig.agentPath;
+        if (StringUtils.isEmpty(agentPath)) {
+            agentPath = getAgentPath();
+        }
         this.macaqueClient = new MacaqueClient();
-        this.macaqueClient.setAgentPath(getAgentPath());
+        this.macaqueClient.setAgentPath(agentPath);
     }
 
     /**
