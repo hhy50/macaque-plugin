@@ -6,5 +6,5 @@ public class PluginInfo {
     public static final String JPS_PROCESS_ID = "six.eared.macaque.plugin.jps.list";
     public static final String NAME = "Macaque";
     public static final String CONFIG_STORE = "macaque-server.xml";
-    public static final int AGENT_VERSION = 4;
+    public static final int AGENT_VERSION = 5;
 }
